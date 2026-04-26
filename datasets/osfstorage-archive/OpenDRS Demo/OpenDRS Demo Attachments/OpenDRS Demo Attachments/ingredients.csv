@@ -1,0 +1,65 @@
+inglist,ingdesc,ingcode,ingvar
+Chikondamoyo,Groundnut flour,5,addgnut
+Chikondamoyo,Banana,19,addbana
+Chikondamoyo,Other,88,addother
+General,Oil,1,addoil
+General,Salt,2,addsalt
+General,Tomato,3,addtom
+General,Onion,4,addonion
+General,Groundnut flour,5,addgnut
+General,Sugar,6,addsugar
+General,Spices,7,addspice
+General,Margarine,8,addmarg
+General,Other,88,addother
+Milk,Sugar,6,addsugar
+Milk,Other,88,addother
+Porridge,Oil,1,addoil
+Porridge,Salt,2,addsalt
+Porridge,Groundnut flour,5,addgnut
+Porridge,Sugar,6,addsugar
+Porridge,Margarine,8,addmarg
+Porridge,"Milk, full cream, UHT or fresh",9,adduht
+Porridge,"Milk, full cream, powder",10,addpowder
+Porridge,"Milk, filled, powder (Cowbell)",11,addcowbell
+Porridge,"Milk, sweetened condensed",12,addcond
+Porridge,"Milk, evaporated",13,addevap
+Porridge,Soya flour,15,addsoy
+Porridge,Sweet potato flour,16,addspot
+Porridge,Bean flour,20,addbean
+Porridge,Egg,22,addegg
+Porridge,Other,88,addother
+Relish,Oil,1,addoil
+Relish,Salt,2,addsalt
+Relish,Tomato,3,addtom
+Relish,Onion,4,addonion
+Relish,Groundnut flour,5,addgnut
+Relish,Spices,7,addspice
+Relish,Soda,14,addsoda
+Relish,Other,88,addother
+Rice,Oil,1,addoil
+Rice,Salt,2,addsalt
+Rice,Tomato,3,addtom
+Rice,Onion,4,addonion
+Rice,Spices,7,addspice
+Rice,Margarine,8,addmarg
+Rice,Irish potato,17,addipot
+Rice,Other,88,addother
+Soup,Oil,1,addoil
+Soup,Salt,2,addsalt
+Soup,Tomato,3,addtom
+Soup,Onion,4,addonion
+Soup,Groundnut flour,5,addgnut
+Soup,Spices,7,addspice
+Soup,Other,88,addother
+Tea,Sugar,6,addsugar
+Tea,"Milk, full cream, UHT or fresh",9,adduht
+Tea,"Milk, full cream, powder",10,addpowder
+Tea,"Milk, filled, powder (Cowbell)",11,addcowbell
+Tea,"Milk, sweetened condensed",12,addcond
+Tea,"Milk, evaporated",13,addevap
+Tea,Cremora,21,addcrem
+Tea,Other,88,addother
+Toppings,Margarine,8,addmarg
+Toppings,Jam,18,addjam
+Toppings,Peanut butter,23,addpb
+Toppings,Other,88,addother

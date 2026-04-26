@@ -1,0 +1,129 @@
+
+======================================================================
+FILE: Sri Lanka Food Composition Table_20240514.xlsx
+======================================================================
+Sheets: ['Details', 'FCT']
+
+  --- Sheet: 'Details' (1781 rows x 9 cols) ---
+    Row 1: C1=Food composition table for R5N study in Sri Lanka
+    Row 2: 
+    Row 3: C1=Version date 14 May 2024
+    Row 4: 
+    Row 5: C1=Developed by Caroline Joyce,1 with input from Tonya Xie,1 and Bess Caswell, PhD2
+1 University of California, Davis
+2 USDA Agricultural Research Service
+
+  --- Sheet: 'FCT' (767 rows x 37 cols) ---
+    Row 1: C1=FCT source, C2=drfoodlistcode, C3=drfoodlistdesc, C4=Recipe/Single food item, C5=Energy (kcal), C6=Protein (g), C7=Total fats (g), C8=Total carbohydrates (g), C9=Fiber (g), C10=Starch (g), C11=Cholesterol (mg), C12=Calcium (mg), C13=Magnesium (mg), C14=Iron (mg), C15=Zinc (mg), C16=Thiamin (mg), C17=Riboflavin (mg), C18=Niacin (mg), C19=Vitamin B6 (mg), C20=Vitamin B12 (mcg), C21=Folate, ug, C22=Vitamin C (mg), C23=Retinol Activity Equivalents (ug), C24=Vitamin E (ug), C25=total n-6 fas (% of energy), C26=total n-3 fas (% of energy), C27=Vitamin B5 (mg), C28=Phosphorus (mg), C29=Potassium (mg), C30=Sodium (mg), C31=Selenium (mcg), C32=Retinol (mcg), C33=Saturated fatty acids (g), C34=Mono-unsaturated fatty acids (g), C35=Poly-unsaturated fatty acids (g), C36=Free sugars (g)
+    Row 2: C1=ASEAN FCT #AAP1 Beer, pale pilsen, C2=10010001, C3=BEER, C4=S, C5=43, C6=0, C7=0.46, C8=3.55, C9=0, C10=0, C11=0, C12=4, C13=6, C14=0.02, C15=0.01, C16=0, C17=0.03, C18=0.51, C19=0.05, C20=0, C21=6, C22=0, C23=0
+    Row 3: C1=Wayamba 2022 SPIRITS, C2=10010002, C3=LIQUOR, ARAK, C4=S, C5=222, C6=0, C7=0, C8=0, C9=0, C10=0, C11=0, C12=0, C13=0, C14=0, C15=0, C16=0, C17=0, C18=0, C19=0, C20=0, C21=0, C22=0, C23=0, C24=0, C25=0, C26=0
+    Row 4: C1=Wayamba 2022 SPIRITS, C2=10010003, C3=LIQUOR, KASIPPU, C4=S, C5=222, C6=0, C7=0, C8=0, C9=0, C10=0, C11=0, C12=0, C13=0, C14=0, C15=0, C16=0, C17=0, C18=0, C19=0, C20=0, C21=0, C22=0, C23=0, C24=0, C25=0, C26=0
+    Row 5: C1=Wayamba 2022 SPIRITS, C2=10010004, C3=LIQUOR, TODDY, COCONUT, C4=S, C5=222, C6=0, C7=0, C8=0, C9=0, C10=0, C11=0, C12=0, C13=0, C14=0, C15=0, C16=0, C17=0, C18=0, C19=0, C20=0, C21=0, C22=0, C23=0, C24=0, C25=0, C26=0
+
+======================================================================
+FILE: Sri Lanka Food Group Table_20240506.xlsx
+======================================================================
+Sheets: ['Details', 'DQ assignments', 'Food Group Definitions']
+
+  --- Sheet: 'Details' (2150 rows x 9 cols) ---
+    Row 1: C1=Food groups table for R5N study in Sri Lanka
+    Row 2: 
+    Row 3: C1=Version date 14 May 2024
+    Row 4: 
+    Row 5: C1=Developed by Mia Zhong,1 and Caroline Joyce,1 with input from Bess Caswell, PhD2
+1 University of California, Davis
+2 USDA Agricultural Research Service
+
+  --- Sheet: 'DQ assignments' (392 rows x 7 cols) ---
+    Row 1: C1=drfoodlistcode, C2=drfoodlistdesc, C3=gdqsgroup, C4=gdqsfried, C5=dgslgroup, C6=dgslsubgroup, C7=mddw
+    Row 2: C1=169655, C2=Sugars, granulated, C3=Sweets and ice cream , C4=N, C5=Sugar, C6=Sugar or sweetener, C7=Sweets
+    Row 3: C1=169957, C2=Mung beans, mature seeds, sprouted, raw, C3=Legumes , C4=N, C5=Pulses, C6=Pulses, C7=Pulses
+    Row 4: C1=171631, C2=Sausage, C3=Processed meat , C4=N, C5=Fish & lean meat , C6=Fish, Chicken, Beef, Pork, and Mutton, C7=Meat, poultry & fish
+    Row 5: C1=999999, C2=No nutritive value, C3=NA, C4=N, C5=NA, C6=NA, C7=Condiments & seasonings
+
+  --- Sheet: 'Food Group Definitions' (41 rows x 10 cols) ---
+    Row 1: C1=gdqsgroup, C2=GDQS Group Definition/Description, C3=gdqsfried, C4=GDQS Fried Category Definition/Description, C5=dgslgroup, C6=DGSL Group Definition/Description, C7=dgslsubgroup, C8=DGSL Sub-group Definition/Description, C9=mddw, C10=MDD-W Group Definition/Description
+    Row 2: C1=Citrus fruits, C2=Whole fruits in the genus Citrus., C3=Yes, C4=Purchased, deep-fried food to be double-classified in GDQS, C5=Cereals & starchy foods, C6=Cereals, cereal products, yams and tubers, jackfruit, breadfruit, C7=Cooked rice , C8=Cooked rice and other grains, C9=Starchy staples, C10=Grains, white roots & tubers, plantains
+    Row 3: C1=Deep orange fruits , C2=Whole fruits (not including juice or spreads) containing ≥120 retinol equivalents per 100g. , C3=No, C4=Not a purchased, deep-fried food.  Has only single classification in GDQS, C5=Vegetables & green leaves, C6=Vegetables, including green leafy vegetables, root vegetables (e.g. beet, radish), squashes, gourds, tomato, brinjal, capsicum, etc., C7=String hoppers, C8=String hoppers, made with rice or other grain, C9=Pulses, C10=Beans, peas, lentils
+    Row 4: C1=Other fruits , C2=Whole fruits not belonging in the other fruit categories (not including coconuts). , C5=Pulses , C6=Beans, peas and lentils (e.g. dhal, mung parippu, chickpea, soya bean), C7=Bread, C8=Bread or rolls (excluding flatbreads), C9=Nuts & seeds, C10=Tree nuts, groundnuts/peanuts, seeds, nut butters
+    Row 5: C1=Dark green leafy vegetables , C2=Leafy vegetables containing ≥120 retinol equivalents per 100g. , C5=Fish & lean meat, C6=Fish, chicken, beef, pork, mutton, dried fish/sprats, C7=Pittu, C8=Pittu, made with rice or other grain, C9=Dairy, C10=milk, cheese, yogurt (excludes butter, cream, ice cream, sweetened condensed milk, packaged yogurt drinks)
+
+======================================================================
+FILE: Sri Lanka Portion Conversion Estimation Table_20240418.xlsx
+======================================================================
+Sheets: ['Details', 'Portion size conversions']
+
+  --- Sheet: 'Details' (2153 rows x 9 cols) ---
+    Row 1: C1=Portion conversion estimation table for R5N study in Sri Lanka
+    Row 2: 
+    Row 3: C1=Version date 14 May 2024
+    Row 4: 
+    Row 5: C1=Developed by Mia Zhong,1 and Caroline Joyce,1 with input from Bess Caswell, PhD2
+1 University of California, Davis
+2 USDA Agricultural Research Service
+
+  --- Sheet: 'Portion size conversions' (2718 rows x 46 cols) ---
+    Row 1: C1=drfoodlistcode, C2=drfoodlistdesc, C3=drportionunit, C4=convfactor, C5=density, C6=volume, C7=piecewt, C8=convsource, C9=Note
+    Row 2: C1=10010001, C2=BEER, C3=ml, C4=1, C5=1, C6=1, C8=FAOINFOODS_DensityDatabase_v2.0/Beer, light
+    Row 3: C1=10010001, C2=BEER, C3=drinking glasses, C4=330, C5=1, C6=330, C8=FAOINFOODS_DensityDatabase_v2.0/Beer, light
+    Row 4: C1=10010002, C2=LIQUOR, ARAK, C3=grams, C4=1, C5=0.939, C6=1, C7=1, C8=FAOINFOODS_DensityDatabase_v2.0/Spirits, 45% alcohol (whiskey) 
+    Row 5: C1=10010002, C2=LIQUOR, ARAK, C3=mL, C4=1, C5=0.939, C6=1, C8=FAOINFOODS_DensityDatabase_v2.0/Spirits, 45% alcohol (whiskey) 
+
+======================================================================
+FILE: Sri Lanka Standard Recipes Database Ingredients FCT_20240419.xlsx
+======================================================================
+Sheets: ['Details', 'Ingredients FCT', 'averages']
+
+  --- Sheet: 'Details' (424 rows x 3 cols) ---
+    Row 1: C1=Standard recipes table for R5N study in Sri Lanka
+    Row 2: 
+    Row 3: C1=Version date 14 May 2024
+    Row 4: 
+    Row 5: C1=Developed by Caroline Joyce, MSc,1 with input from Bess Caswell, PhD2
+1 University of California, Davis
+2 USDA Agricultural Research Service
+
+  --- Sheet: 'Ingredients FCT' (351 rows x 58 cols) ---
+    Row 1: C1=source, C2=fctcode, C3=foodgroup, C4=foodname, C5=nutWATER, C6=nutENERC, C7=nutPROTEIN, C8=nutFATTOTAL, C9=nutCHOAVLDF, C10=nutFIBERTOTAL, C11=nutFIBINS, C12=nutFIBSOL, C13=nutASH, C14=nutVITARE, C15=nutRETINOL, C16=nutTHIA, C17=nutRIBF, C18=nutNIA, C19=nutVITB5, C20=nutVITB6, C21=nutFOLSUM, C22=nutVITC, C23=nutCA, C24=nutP, C25=nutMG, C26=nutNA, C27=nutK, C28=nutFE, C29=nutMN, C30=nutCU, C31=nutZN, C32=nutSE, C33=nutTRP, C34=nutASP, C35=nutTHR, C36=nutSER, C37=nutGLU, C38=nutPRO, C39=nutGLY
+    Row 2: C1=Wayamba University FCT, C2=12039992, C3=Condiments, spices and herbs, C4=COCONUT MILK, C5=67.6, C6=246, C7=2.3, C8=23.8, C9=5.5, C14=0, C16=0.02, C17=0, C18=0.76, C20=0.03, C21=16, C22=2.8, C23=16, C28=1.6, C31=0.7
+    Row 3: C1=Sri Lanka, C2=SLA009, C3=Cereals and cereal products, C4=Rice, kekulu, red (Oryza sativa), C5=7.92, C6=366, C7=8.64, C8=2.12, C9=77.59, C10=3.18, C11=2.21, C12=0.98, C13=0.57, C17=0.05, C18=1.5, C19=0.65, C20=0.1, C21=8.39, C23=4.73, C24=195, C25=31.7, C26=1.61, C27=169, C28=0.88, C29=1.09, C30=0.17, C31=1.84, C32=8.32, C33=1.01, C34=10.1, C35=3.52, C36=6.03, C37=19.18, C38=4.39, C39=5.14
+    Row 4: C1=Sri Lanka, C2=SLA011, C3=Cereals and cereal products, C4=Rice, nadu, white {Oryza sativa), C5=7.84, C6=366, C7=7.76, C8=1.48, C9=80.11, C10=2.45, C11=1.69, C12=0.76, C13=0.37, C17=0.03, C18=1.21, C19=0.52, C20=0.12, C21=9.35, C23=4.57, C24=119, C25=20.1, C26=3, C27=147, C28=0.64, C29=0.46, C30=0.32, C31=1.61, C32=8.93, C33=1.06, C34=9.72, C35=3.48, C36=5.97, C37=18.84, C38=5.62, C39=5.07
+    Row 5: C1=Sri Lanka, C2=SLA010, C3=Cereals and cereal products, C4=Rice, kekulu, white {Oryza sativa), C5=9.29, C6=361, C7=9.88, C8=1.52, C9=76.67, C10=2.36, C11=1.57, C12=0.79, C13=0.3, C17=0.03, C18=0.89, C19=0.52, C20=0.09, C21=10.67, C23=6.94, C24=150, C25=26.29, C26=1.55, C27=87.92, C28=1.22, C29=0.68, C30=0.17, C31=1.5, C32=8.4, C33=0.95, C34=9.93, C35=3.33, C36=5.88, C37=19.44, C38=5.63, C39=5.01
+
+  --- Sheet: 'averages' (61 rows x 38 cols) ---
+    Row 1: C7=fctcode, C9=nutWATER, C10=nutENERC, C11=nutPROTEIN, C12=nutFATTOTAL, C13=nutCHOAVLDF, C14=nutFIBERTOTAL, C15=nutSTARCH, C16=nutCHOLESTEROL, C17=nutCA, C18=nutMG, C19=nutFE, C20=nutZN, C21=nutTHIA, C22=nutRIBF, C23=nutNIA, C24=nutVITB6, C25=nutVITB12, C26=nutFOLSUM, C27=nutVITC, C28=nutVITARE, C29=nutVITE, C30=nutFATSAT, C31=nutFATMUS, C32=nutFATPUS, C33=nutVITB5, C34=nutP, C35=nutK, C36=nutNA, C37=nutSE, C38=nutSUGFREE
+    Row 2: C1=form, C2=size, C3=fish/seafood, C4=freq, C5=prop of dried, C6=prop of large/small, C7=CSLF060, C8=Average dried fish, NFS, C9=23.857877813504828, C10=269.2122186495177, C11=53.93037513397642, C12=5.94957127545552, C16=135.82484458735263, C17=139.4998177920686, C18=138.66288317256164, C19=2.9927224008574496, C20=3.2104501607717046, C22=0.19214362272240085, C23=4.5467952840300105, C24=1.0308252947481245, C25=3.2398713826366565, C26=337.4825294748124, C30=2185.090032154341, C31=979.5680600214363, C32=1279.8488745980708, C33=0.8422508038585209, C34=355.71382636655954, C35=729.213290460879, C36=10537.766345123258, C37=427.6538049303323
+    Row 3: C7=CSLF061, C8=Average dried fish, large, C9=23.045910652920963, C10=278.6975945017182, C11=60.43367697594501, C12=4.384226804123712, C16=71.26659793814433, C17=77.6980412371134, C18=86.17343642611684, C19=2.9647079037800688, C20=1.2806872852233675, C22=0.09460481099656355, C23=2.846529209621993, C24=1.488144329896907, C25=4.674604810996564, C26=189.47491408934707, C30=1604.5773195876288, C31=694.0927835051546, C32=646.2268041237113, C33=1.368213058419244, C34=175.70446735395188, C35=783.5704467353951, C36=9166.230240549829, C37=567.8213058419244
+    Row 4: C1=dried, C2=large, C3=SKIPJACK TUNA (+TUNA), C4=204, C5=0.21864951768488747, C6=0.7010309278350515, C7=SLF058, C8=Skipjack tuna (Katsuwonus pelamis), C9=22.77, C10=282, C11=63.79, C12=3.37, C16=77.14, C17=83.48, C18=83.45, C19=3.6, C20=1.44, C22=0.12, C23=2.98, C24=1.98, C25=5.64, C26=213, C30=1767, C31=657, C32=604, C33=1.64, C34=185, C35=765, C36=7909, C37=624
+    Row 5: C1=dried, C2=large, C3=RAY, C4=44, C5=0.04715969989281887, C6=0.15120274914089346, C7=SLF057, C8=Shark {Carcharhinus fa/ciformis), C9=26.09, C10=267, C11=55.03, C12=5.25, C16=39.82, C17=42.24, C18=92.94, C19=1.48, C20=0.66, C22=0.04, C23=3.27, C24=0.32, C25=2.06, C26=187, C30=1157, C31=830, C32=852, C33=0.81, C34=146, C35=837, C36=10585, C37=143
+
+======================================================================
+FILE: Sri Lanka Standard Recipes Database_20240514.xlsx
+======================================================================
+Sheets: ['Details', 'Recipes table', 'Retention factors list']
+
+  --- Sheet: 'Details' (23 rows x 9 cols) ---
+    Row 1: C1=Standard recipes table for R5N study in Sri Lanka
+    Row 2: 
+    Row 3: C1=Version date 14 May 2024
+    Row 4: 
+    Row 5: C1=Developed by Caroline Joyce, MSc,1 with input from Bess Caswell, PhD2
+1 University of California, Davis
+2 USDA Agricultural Research Service
+
+  --- Sheet: 'Recipes table' (4767 rows x 6 cols) ---
+    Row 1: C1=recipecode, C2=recipedesc, C3=fctcode, C4=retentionid, C5=ingname, C6=ingfraction
+    Row 2: C1=10020202, C2=FRUIT CORDIAL, W/ WATER, C3=E054, C4=120110, C5=Plum (Prunus domestica), C6=25
+    Row 3: C1=10020202, C2=FRUIT CORDIAL, W/ WATER, C3=169655, C5=Sugars, granulated, C6=1
+    Row 4: C1=10020207, C2=LIME JUICE,FRESH, W/ SODA & SWEETENER, C3=999999, C5=No nutritive value, C6=91.4032475850846
+    Row 5: C1=10020207, C2=LIME JUICE,FRESH, W/ SODA & SWEETENER, C3=SLE028, C5=Lime, sweet, pulp (Citrus limetta), C6=8.3093861440986
+
+  --- Sheet: 'Retention factors list' (228 rows x 4 cols) ---
+    Row 1: C1=retentionid, C2=food, C3=cookmethod, C4=USDA-NRF Retention Code
+    Row 2: C1=160210, C2=CHEESE, C3=BAKED, C4=0001
+    Row 3: C1=160213, C2=CHEESE, C3=BROILED, C4=0003
+    Row 4: C1=160233, C2=CHEESE, C3=COOKED, W/LIQUID, C4=0005
+    Row 5: C1=160270, C2=CHEESE, C3=REHEATED, C4=0007
+
+
+DONE - All files inspected.

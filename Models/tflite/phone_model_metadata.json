@@ -1,0 +1,41 @@
+{
+  "model_name": "har_fusion_phone",
+  "model_type": "phone_fallback_1d_cnn",
+  "num_features": 6,
+  "feature_names": [
+    "accel_x",
+    "accel_y",
+    "accel_z",
+    "gyro_x",
+    "gyro_y",
+    "gyro_z"
+  ],
+  "num_classes": 5,
+  "class_labels": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "class_names": [
+    "Walking",
+    "Jogging",
+    "Stairs",
+    "Sitting",
+    "Standing"
+  ],
+  "sensors_required": [
+    "phone_accel",
+    "phone_gyro"
+  ],
+  "window_size": 200,
+  "sampling_rate_hz": 20,
+  "overlap": 0.5,
+  "scaler_mean": [],
+  "scaler_scale": [],
+  "sklearn_accuracy": 0.6878640776699029,
+  "keras_accuracy": 0.7495145631067961,
+  "tflite_accuracy": 0.7495145631067961,
+  "tflite_quant_accuracy": 0.7495145631067961
+}

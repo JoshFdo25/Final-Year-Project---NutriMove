@@ -1,0 +1,70 @@
+PHASE 3 INTEGRATION VERIFICATION
+==================================================
+
+Total foods: 746
+Recommendable: 738
+Alcohol blocked: 8
+Vegetarian: 544
+Non-vegetarian: 194
+Dietary overlap: 0
+Foods without dietary tags: 0
+
+Alcohol items blocked:
+  - BEER
+  - LIQUOR, ARAK
+  - LIQUOR, KASIPPU
+  - LIQUOR, TODDY, COCONUT
+  - LIQUOR, TODDY, KITUL
+  - LIQUOR, TODDY, PALMYRA
+  - LIQUOR, HARD (>35% ABV), NON-SPECIFIC
+  - COCKTAIL MIX
+
+False positive check (should all be 0):
+  ginger beer blocked: 0
+  malted blocked: 0
+  drumstick blocked: 0
+
+Meal coverage:
+  breakfast: 168
+  lunch: 550
+  dinner: 550
+  snack: 419
+
+Food groups:
+  vegetables: 214
+  protein: 180
+  cereals: 74
+  other: 66
+  legumes: 61
+  dairy: 30
+  fruits: 30
+  sweets: 30
+  beverages: 26
+  fats_oils: 22
+  condiments: 3
+  snacks: 2
+  vegetables: 0
+  protein: 0
+  cereals: 0
+  other: 0
+  legumes: 0
+  dairy: 0
+  fruits: 0
+  sweets: 0
+  beverages: 0
+  fats_oils: 0
+  condiments: 0
+  snacks: 0
+
+Veg breakfast candidates: 152
+
+TFLite model exists: True
+Model metadata exists: True
+TFLite size: 5.4 KB
+
+Calorie distribution sums:
+  lose: 0.9999999999999999
+  maintain: 0.9999999999999999
+  gain: 0.9999999999999999
+
+ALL CHECKS PASSED

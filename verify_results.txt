@@ -1,0 +1,61 @@
+Total foods: 746
+Recommendable: 738
+Non-recommendable (alcohol): 8
+Vegetarian: 544
+Non-vegetarian: 202
+Recipes: 575
+Foods with portions: 740
+
+Food group distribution:
+  vegetables: 214
+  protein: 180
+  other: 74
+  cereals: 74
+  legumes: 61
+  dairy: 30
+  fruits: 30
+  sweets: 30
+  beverages: 26
+  fats_oils: 22
+  condiments: 3
+  snacks: 2
+
+Meal type coverage:
+  breakfast: 168
+  lunch: 550
+  dinner: 550
+  snack: 419
+
+Alcohol items (non-recommendable):
+  BEER
+  LIQUOR, ARAK
+  LIQUOR, KASIPPU
+  LIQUOR, TODDY, COCONUT
+  LIQUOR, TODDY, KITUL
+  LIQUOR, TODDY, PALMYRA
+  LIQUOR, HARD (>35% ABV), NON-SPECIFIC
+  COCKTAIL MIX
+
+Sample vegetarian foods:
+  COCONUT WATER, BOTTLED, SWEETENED: 31.4 kcal | beverages | ['snack']
+  COCONUT WATER, FRESH, UNSWEETENED: 14.0 kcal | beverages | ['snack']
+  FRUIT AND MILK DRINK: 72.0 kcal | beverages | ['breakfast', 'snack']
+  FRUIT CORDIAL, W/ WATER: 18.1 kcal | beverages | ['snack']
+  FRUIT DRINK, BOTTLED, READY-TO-DRINK: 40.0 kcal | beverages | ['snack']
+  FRUIT NECTAR, BOTTLED, READY-TO-DRINK: 40.0 kcal | beverages | ['snack']
+  FRUIT SQUASH, W/ WATER: 37.0 kcal | beverages | ['snack']
+  JUICE, SWEETENED: 40.0 kcal | beverages | ['snack']
+  LIME JUICE,FRESH, W/ SODA & SWEETENER: 3.3 kcal | beverages | ['snack']
+  PASSION FRUIT JUICE: 44.0 kcal | beverages | ['snack']
+
+Sample non-vegetarian foods:
+  EGG DOSA: 166.0 kcal | protein | ['breakfast']
+  EGG HOPPERS: 226.0 kcal | cereals | ['breakfast']
+  BEEF KOTTU: 246.0 kcal | cereals | ['dinner', 'lunch']
+  EGG KOTTU: 172.0 kcal | cereals | ['breakfast', 'dinner', 'lunch']
+  CHICKEN KOTTU: 205.7 kcal | cereals | ['dinner', 'lunch']
+  MALDIVES FISH, DRY: 303.0 kcal | protein | ['dinner', 'lunch']
+  CHICKEN GRAVY W/ COCONUT MILK: 186.1 kcal | protein | ['dinner', 'lunch', 'snack']
+  FISH GRAVY: 230.0 kcal | protein | ['dinner', 'lunch']
+  FISH GRAVY, W/ COCONUT MILK: 153.0 kcal | protein | ['dinner', 'lunch', 'snack']
+  FISH & CHILI SAMBOL: 90.4 kcal | protein | ['dinner', 'lunch']

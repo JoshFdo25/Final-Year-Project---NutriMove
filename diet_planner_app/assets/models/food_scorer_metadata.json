@@ -1,0 +1,80 @@
+{
+  "model_name": "food_scorer",
+  "version": "1.0",
+  "input_features": 24,
+  "feature_order": [
+    "calories_zscore",
+    "protein_zscore",
+    "fat_zscore",
+    "carbs_zscore",
+    "fiber_zscore",
+    "group_cereals",
+    "group_protein",
+    "group_legumes",
+    "group_vegetables",
+    "group_fruits",
+    "group_dairy",
+    "group_fats_oils",
+    "group_sweets",
+    "group_beverages",
+    "group_condiments",
+    "group_snacks",
+    "group_other",
+    "meal_breakfast",
+    "meal_lunch",
+    "meal_dinner",
+    "meal_snack",
+    "goal_lose",
+    "goal_maintain",
+    "goal_gain"
+  ],
+  "food_groups": [
+    "cereals",
+    "protein",
+    "legumes",
+    "vegetables",
+    "fruits",
+    "dairy",
+    "fats_oils",
+    "sweets",
+    "beverages",
+    "condiments",
+    "snacks",
+    "other"
+  ],
+  "meal_types": [
+    "breakfast",
+    "lunch",
+    "dinner",
+    "snack"
+  ],
+  "goals": [
+    "lose",
+    "maintain",
+    "gain"
+  ],
+  "normalization": {
+    "calories": {
+      "mean": 185.19661246612466,
+      "std": 124.07261512200411
+    },
+    "protein": {
+      "mean": 7.595325203252033,
+      "std": 8.429388467433046
+    },
+    "fat": {
+      "mean": 10.290487804878051,
+      "std": 10.55397834186887
+    },
+    "carbs": {
+      "mean": 16.08119241192412,
+      "std": 18.545373499958167
+    },
+    "fiber": {
+      "mean": 2.65029810298103,
+      "std": 2.982288215542808
+    }
+  },
+  "training_samples": 8856,
+  "val_mae": 0.06793361902236938
+}

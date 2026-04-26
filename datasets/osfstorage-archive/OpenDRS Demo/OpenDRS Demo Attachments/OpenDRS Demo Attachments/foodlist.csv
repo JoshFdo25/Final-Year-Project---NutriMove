@@ -1,0 +1,214 @@
+filter1desc,filter1code,filter2desc,filter2groupnum,filter2code,foodlistdesc,foodlistcode,inglist,foodlistimage,saucemark
+Beans / peas,11,,,1100,"Cow peas, boiled",10001,Relish,,0
+Beans / peas,11,,,1100,"Kabaifa beans, boiled",10002,Relish,,0
+Beans / peas,11,,,1100,"Kalongonda beans, boiled",10003,Relish,,0
+Beans / peas,11,,,1100,"Mbweso beans, boiled",10004,Relish,,0
+Beans / peas,11,,,1100,"Nanyati beans, boiled",10005,Relish,,0
+Beans / peas,11,,,1100,"Nkhundhudzu beans, boiled",10006,Relish,,0
+Beans / peas,11,,,1100,"Nseula beans, boiled",10007,Relish,,0
+Beans / peas,11,,,1100,"Nzama beans, boiled",10008,Relish,,0
+Beans / peas,11,,,1100,"Pigeon peas, boiled",10009,Relish,,0
+Beans / peas,11,,,1100,"Red beans, boiled",10010,Relish,,0
+Beans / peas,11,,,1100,"Soya pieces, boiled",10011,Relish,,0
+Beans / peas,11,,,1100,"White beans, boiled",10012,Relish,,0
+Beans / peas,11,,,1100,"Other beans, boiled",10088,Relish,,0
+"Bread, rice or pasta",12,,,1200,"Bun, white, oiled crust",11001,Toppings,,0
+"Bread, rice or pasta",12,,,1200,"Bun, white, soft crust",11002,Toppings,,0
+"Bread, rice or pasta",12,,,1200,White bread,11003,Toppings,,0
+"Bread, rice or pasta",12,,,1200,Other bread,11088,General,,0
+"Bread, rice or pasta",12,,,1200,"Rice, white, boiled",11101,Rice,,0
+"Bread, rice or pasta",12,,,1200,"Spaghetti, boiled",11102,Rice,,0
+"Bread, rice or pasta",12,,,1200,Other rice or pasta,11188,Rice,,0
+Drink,13,Juice,1,1301,Baobab juice,12001,,,0
+Drink,13,Juice,1,1301,"Coconut water, fresh, raw",12002,,,0
+Drink,13,Juice,1,1301,"Guava juice, ready to drink",12003,,,0
+Drink,13,Juice,1,1301,"Juice drink with milk, any flavor (Enjoy)",12004,,,0
+Drink,13,Juice,1,1301,"Juice from powder, all flavors, prepared with water",12005,,,0
+Drink,13,Juice,1,1301,"Juice from powder, all flavors, prepared with water and sugar",12006,,,0
+Drink,13,Juice,1,1301,"Mango juice, fresh-made",12007,,,0
+Drink,13,Juice,1,1301,"Mango juice, ready to drink",12008,,,0
+Drink,13,Juice,1,1301,"Orange juice, ready to drink",12009,,,0
+Drink,13,Juice,1,1301,"Peach juice, ready to drink",12010,,,0
+Drink,13,Juice,1,1301,"Pineapple juice, ready to drink",12011,,,0
+Drink,13,Juice,1,1301,"Sugarcane juice, fresh-made",12012,,,0
+Drink,13,Juice,1,1301,Other juice,12088,,,0
+Drink,13,Milk,2,1302,"Cow milk, whole (full cream), UHT or fresh",12101,Milk,,0
+Drink,13,Milk,2,1302,"Cow milk, from full cream powder",12102,Milk,,0
+Drink,13,Milk,2,1302,"Cow milk, from filled powder (Cowbell)",12103,Milk,,0
+Drink,13,Milk,2,1302,"Cow milk, from condensed milk",12104,Milk,,0
+Drink,13,Milk,2,1302,Cremora milk,12105,Milk,,0
+Drink,13,Milk,2,1302,"Drinking yogurt, fruit flavored or sweetened",12106,,,0
+Drink,13,Milk,2,1302,"Flavored milk, ready to drink (Shake 'n' sip)",12107,,,0
+Drink,13,Milk,2,1302,Goat milk,12108,Milk,,0
+Drink,13,Milk,2,1302,Other milk,12188,Milk,,0
+Drink,13,Other drink,3,1303,Coca Cola,12201,,,0
+Drink,13,Other drink,3,1303,"Fanta or Sobo, orange or yellow",12202,,,0
+Drink,13,Other drink,3,1303,"Sobo, cherry plum (purple)",12203,,,0
+Drink,13,Other drink,3,1303,Sprite,12204,,,0
+Drink,13,Other drink,3,1303,"Maheu, ready to drink",12205,,,0
+Drink,13,Other drink,3,1303,Tea,12301,Tea,,0
+Drink,13,Other drink,3,1303,Coffee,12302,Tea,,0
+Drink,13,Other drink,3,1303,Sugar and water solution,12303,,,0
+Drink,13,Other drink,3,1303,Thobwa,12304,,,0
+Drink,13,Other drink,3,1303,Bota,12305,,,0
+Drink,13,Other drink,3,1303,"Infant formula, Lactogen, from powder",12401,,,0
+Drink,13,Other drink,3,1303,"Infant formula, Lactogen, ready to drink",12402,,,0
+Drink,13,Other drink,3,1303,Other drink,12888,Tea,,0
+Fish,14,"Fresh, boiled",4,1404,"Chambo fish, fresh, boiled",13001,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Kambuzi fish, fresh, boiled",13002,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Kampango fish, fresh, boiled",13003,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Makumba fish, fresh, boiled",13004,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Matemba fish, fresh, boiled",13005,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Mbaba fish, fresh, boiled",13006,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Sanjika fish, fresh, boiled",13007,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Usipa fish, fresh, boiled",13008,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Utaka fish, fresh, boiled",13009,Relish,,1
+Fish,14,"Fresh, boiled",4,1404,"Other fish, fresh, boiled",13088,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Chambo fish, fresh, fried",13101,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Kambuzi fish, fresh, fried",13102,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Kampango fish, fresh, fried",13103,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Makumba fish, fresh, fried",13104,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Matemba fish, fresh, fried",13105,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Mbaba fish, fresh, fried",13106,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Mlamba fish, fresh, fried",13107,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Usipa fish, fresh, fried",13108,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Utaka fish, fresh, fried",13109,Relish,,1
+Fish,14,"Fresh, fried",5,1405,"Other fish, fresh, fried",13188,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Bonya fish, dried, boiled",13201,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Chambo fish, dried, boiled",13202,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Kambuzi fish, dried, boiled",13203,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Kampango fish, dried, boiled",13204,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Mbaba fish, dried, boiled",13205,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Usipa fish, dried, boiled",13206,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Utaka fish, dried, boiled",13207,Relish,,1
+Fish,14,"Dried, boiled",6,1406,"Other fish, dried, boiled",13288,Relish,,1
+Fruit,15,,,1500,"Avocado, ripe, raw",14001,,,0
+Fruit,15,,,1500,"Banana, ripe, raw",14002,,,0
+Fruit,15,,,1500,"Coconut, white flesh, fresh, raw",14003,,,0
+Fruit,15,,,1500,"Guava, ripe, raw",14004,,,0
+Fruit,15,,,1500,"Mango, green, raw",14005,,,0
+Fruit,15,,,1500,"Mango, ripe, raw",14006,,,0
+Fruit,15,,,1500,"Mango, semi-ripe, raw",14007,,,0
+Fruit,15,,,1500,"Masau, ripe, raw",14008,,,0
+Fruit,15,,,1500,"Orange, raw",14009,,,0
+Fruit,15,,,1500,"Papaya, ripe, raw",14010,,,0
+Fruit,15,,,1500,"Pineapple, fresh, ripe, raw",14011,,,0
+Fruit,15,,,1500,"Tangerine, raw",14012,,,0
+Fruit,15,,,1500,"Other fruit, raw",14088,,,0
+"Meat, egg or insect",16,Meat,7,1607,Beef liver,15001,Relish,,2
+"Meat, egg or insect",16,Meat,7,1607,Beef meat,15002,Relish,,2
+"Meat, egg or insect",16,Meat,7,1607,Duck meat,15003,Relish,,2
+"Meat, egg or insect",16,Meat,7,1607,Goat meat,15004,Relish,,2
+"Meat, egg or insect",16,Meat,7,1607,Goat offals,15005,Relish,,2
+"Meat, egg or insect",16,Meat,7,1607,Other meat,15088,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,"Chicken meat, breast",15101,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,"Chicken meat, drumstick",15102,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,"Chicken meat, thigh",15103,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,"Chicken meat, wing",15104,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,"Chicken meat, back",15105,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,"Chicken meat, mixed or unknown pieces",15106,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,Chicken liver,15107,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,Chicken offals,15108,Relish,,2
+"Meat, egg or insect",16,Chicken,8,1608,Other chicken,15109,Relish,,2
+"Meat, egg or insect",16,Egg,9,1609,"Egg, white only, boiled",15201,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,"Egg, white only, fried",15202,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,"Egg, whole, boiled",15203,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,"Egg, whole, fried",15204,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,"Egg, whole, scrambled",15205,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,"Egg, yolk only, boiled",15206,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,"Egg, yolk only, fried",15207,Relish,,0
+"Meat, egg or insect",16,Egg,9,1609,Other egg,15288,Relish,,0
+"Meat, egg or insect",16,Insect,10,1610,Ngumbi (winged termites),15301,Relish,,0
+"Meat, egg or insect",16,Insect,10,1610,Other insect,15388,Relish,,0
+Nsima,17,,,1700,"Nsima, cassava only",16001,,,0
+Nsima,17,,,1700,"Nsima, grainmill maize",16002,,,0
+Nsima,17,,,1700,"Nsima, madeya",16003,,,0
+Nsima,17,,,1700,"Nsima, mgaiwa",16004,,,0
+Nsima,17,,,1700,"Nsima, woyera",16005,,,0
+Nsima,17,,,1700,Other nsima,16088,,,0
+Porridge,18,Thin consistency,11,1811,"Phala, grainmill maize, thin consistency",17001,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Phala, likuni, thin consistency",17002,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Phala, mgaiwa, thin consistency",17003,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Phala, misele, thin consistency",17004,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Phala, rice, thin consistency",17005,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Phala, soya flour, thin consistency",17006,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Phala, woyera, thin consistency",17007,Porridge,ThinPorridge.jpg,0
+Porridge,18,Thin consistency,11,1811,"Other phala, thin consistency",17088,Porridge,ThinPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Infant cereal, Cerelac or Purity, medium consistency",17101,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Phala, grainmill maize, medium consistency",17102,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Phala, likuni, medium consistency",17103,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Phala, mgaiwa, medium consistency",17104,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Phala, rice, medium consistency",17105,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Phala, soya flour, medium consistency",17106,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Phala, woyera, medium consistency",17107,Porridge,MediumPorridge.jpg,0
+Porridge,18,Medium consistency,12,1812,"Other phala, medium consistency",17188,Porridge,MediumPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, grainmill maize, thick consistency",17201,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, likuni, thick consistency",17202,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, mgaiwa, thick consistency",17203,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, misele, thick consistency",17204,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, pounded maize, thick consistency",17205,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, rice, thicl consistency",17206,,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, soya flour, thick consistency",17207,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Phala, woyera, thick consistency",17208,Porridge,ThickPorridge.jpg,0
+Porridge,18,Thick consistency,13,1813,"Other phala, thick consistency",17288,Porridge,ThickPorridge.jpg,0
+Snack or sweet,19,Savory,14,1914,"Crisps, maize",18001,,,0
+Snack or Sweet,19,Savory,14,1914,"Crisps, potato",18002,,,0
+Snack or sweet,19,Savory,14,1914,"Groundnuts, fresh, boiled",18003,,,0
+Snack or sweet,19,Savory,14,1914,"Groundnuts, shelled, roasted",18004,,,0
+Snack or sweet,19,Savory,14,1914,Kamba puffs,18005,,,0
+Snack or sweet,19,Savory,14,1914,"Maize, green, fresh, boiled",18006,,,0
+Snack or sweet,19,Savory,14,1914,Mandasi (fritter),18007,,,0
+Snack or sweet,19,Savory,14,1914,"Samosa, meat filled",18008,,,0
+Snack or sweet,19,Savory,14,1914,"Samosa, potato filled",18009,,,0
+Snack or sweet,19,Savory,14,1914,"Samosa, rice filled",18010,,,0
+Snack or sweet,19,Savory,14,1914,Other savory snack,18088,General,,0
+Snack or sweet,19,Sweet,15,1915,"Biscuit, flavored, no filling",18101,,,0
+Snack or sweet,19,Sweet,15,1915,"Biscuit, cream filled",18102,,,0
+Snack or sweet,19,Sweet,15,1915,"Biscuit, glucose",18103,,,0
+Snack or sweet,19,Sweet,15,1915,"Biscuit, plain (Marie)",18104,,,0
+Snack or Sweet,19,Sweet,15,1915,Chikondamoyo,18105,,,0
+Snack or Sweet,19,Sweet,15,1915,Chitumbuwa,18106,,,0
+Snack or sweet,19,Sweet,15,1915,"Hard candy (lollipop, sweet)",18107,,,0
+Snack or sweet,19,Sweet,15,1915,Honey,18108,,,0
+Snack or sweet,19,Sweet,15,1915,"Ice cream, any flavor",18109,,,0
+Snack or sweet,19,Sweet,15,1915,Peanut brittle,18110,,,0
+Snack or sweet,19,Sweet,15,1915,"Sugarcane, fresh",18111,,,0
+Snack or sweet,19,Sweet,15,1915,Other sweet snack,18188,General,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Bean leaves, cooked",19001,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Bonongwe, cooked",19002,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Cabbage, cooked",19003,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Cassava leaves, cooked",19004,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Cham'mwamba, cooked",19005,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Chinese cabbage, cooked",19006,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Pumpkin leaves, cooked",19007,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Rape leaves, cooked",19008,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Tanaposi leaves, cooked",19009,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Therere leaves, cooked",19010,Relish,,0
+Vegetable or vegetable relish,20,Leafy vegetable,16,2016,"Other leafy vegetable relish, cooked",19088,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Cassava, boiled",19101,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Irish potato, boiled",19102,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Irish potato, fried",19103,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Sweet potato, white-fleshed, cooked",19104,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Sweet potato, orange-fleshed, cooked",19105,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Eggplant, cooked",19201,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Maungu, boiled",19202,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Mphonda pumpkin, cooked",19203,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Mushroom, cooked",19204,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Okra, cooked",19205,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Orange pumpkin, cooked",19206,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Tomato, fresh, raw",19207,Relish,,0
+Vegetable or vegetable relish,20,Other vegetable,17,2017,"Other vegetable, cooked",19288,Relish,,0
+Soup,21,,,2100,Bean soup,20001,Soup,,0
+Soup,21,,,2100,Egg soup,20002,Soup,,0
+Soup,21,,,2100,Goat meat soup,20003,Soup,,2
+Soup,21,,,2100,Goat offals soup,20004,Soup,,2
+Soup,21,,,2100,Green leafy vegetable soup,20005,Soup,,0
+Soup,21,,,2100,Large fish soup,20006,Soup,,1
+Soup,21,,,2100,Small fish soup,20007,Soup,,1
+Soup,21,,,2100,Soya pieces soup,20008,Soup,,0
+Soup,21,,,2100,Other soup,20088,Soup,,0
+Other foods,88,,,8800,Mistaken Pass 1 'Add group',88000,,,0
+Other foods,88,,,8800,Groundnut flour,88001,,,0
+Other foods,88,,,8800,Margarine (Blue Band or similar),88002,,,0
+Other foods,88,,,8800,Plumpynut LNS,88003,,,0
+Other foods,88,,,8800,Other food,88088,General,,0

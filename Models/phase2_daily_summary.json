@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-03-31T22:12:17.532991",
+  "user": {
+    "name": "Joshwin",
+    "age": 22,
+    "weight_kg": 70,
+    "height_cm": 175,
+    "gender": "male",
+    "activity_level": "moderate",
+    "goal": "lose"
+  },
+  "bmr": {
+    "mifflin_st_jeor": 1688.75,
+    "harris_benedict": 1741.08,
+    "description": "Your body burns 1688.75 kcal/day at rest"
+  },
+  "daily_energy": {
+    "bmr": 1688.75,
+    "activity_burn": 316.16,
+    "total_expenditure": 2004.91,
+    "goal_adjustment": -500,
+    "daily_target": 1504.91,
+    "tdee_reference": 2617.56,
+    "method": "Option B: BMR + Live Activity Tracking",
+    "description": "BMR (1688.75) + Activity (316.16) = 2004.91 kcal expenditure. Goal 'lose' adjustment: -500 kcal. Target: 1504.91 kcal/day"
+  },
+  "activity_tracking": {
+    "tracked_minutes": 60.0,
+    "activities": {
+      "Jogging": {
+        "duration_minutes": 30.0,
+        "met_value": 7.0,
+        "calories_burned": 245.0
+      },
+      "Walking": {
+        "duration_minutes": 10.0,
+        "met_value": 3.5,
+        "calories_burned": 40.83
+      },
+      "Sitting": {
+        "duration_minutes": 20.0,
+        "met_value": 1.3,
+        "calories_burned": 30.33
+      }
+    },
+    "total_activity_calories": 316.16,
+    "description": "You burned 316.16 kcal from tracked activities"
+  },
+  "meals": {
+    "consumed": {},
+    "total_consumed": 0,
+    "remaining_calories": 1504.91,
+    "remaining_meal_targets": {
+      "breakfast": 451.0,
+      "lunch": 527.0,
+      "dinner": 376.0,
+      "snacks": 150.0
+    },
+    "distribution": {
+      "breakfast": 0.3,
+      "lunch": 0.35,
+      "dinner": 0.25,
+      "snacks": 0.1
+    }
+  },
+  "macros": {
+    "protein_g": 84.0,
+    "carbs_g": 169.3,
+    "fat_g": 50.2,
+    "protein_cal": 336.0,
+    "carbs_cal": 677.0,
+    "fat_cal": 451.0,
+    "fiber_g": 25
+  }
+}

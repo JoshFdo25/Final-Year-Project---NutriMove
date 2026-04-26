@@ -1,0 +1,42 @@
+Model size: 5.4 KB
+Val MAE: 0.0679
+Training samples: 8856
+
+Scenario Predictions:
+  GOOD: Rice for lunch (maintain): 0.764 (KENDA, FINGER MILLET)
+  GOOD: Fish curry for dinner (lose): 0.890 (EGG DOSA)
+  GOOD: Dhal for lunch (maintain): 0.973 (CHICK PEAS, BOILED)
+  GOOD: Banana for snack (maintain): 0.810 (ORANGE SODA)
+  GOOD: Milk for breakfast (gain): 0.541 (CREAM SODA)
+  GOOD: Vegetables for dinner (lose): 0.875 (UPPUMA, TEMPERED W/ VEGETABLES)
+  BAD: Cake for dinner (lose): 0.438 (TREACLE)
+  BAD: Oil for breakfast (lose): 0.235 (MARGARINE)
+  NEUTRAL: Beverage for snack: 0.682 (COCONUT WATER, BOTTLED, SWEETENED)
+
+Top 5 for breakfast (maintain):
+  0.936 - YEAST EXTRACT (other)
+  0.922 - IDLI, SEMOLINA (cereals)
+  0.892 - IDLI, MILLET (other)
+  0.883 - IDLI, RICE & DAL (cereals)
+  0.848 - ROTI, EGG (cereals)
+
+Top 5 for lunch (maintain):
+  0.993 - MALDIVES FISH, DRY (protein)
+  0.987 - HALMASSA ANCHOVY (SPRAT), DRIED, BOILED (protein)
+  0.985 - CHILI, RED, DRIED (vegetables)
+  0.984 - YEAST EXTRACT (other)
+  0.980 - SKIPJACK TUNA, DRIED, DEEP-FRIED (protein)
+
+Top 5 for dinner (maintain):
+  0.992 - MALDIVES FISH, DRY (protein)
+  0.987 - HALMASSA ANCHOVY (SPRAT), DRIED, BOILED (protein)
+  0.982 - CHILI, RED, DRIED (vegetables)
+  0.981 - YEAST EXTRACT (other)
+  0.978 - SKIPJACK TUNA, DRIED, DEEP-FRIED (protein)
+
+Top 5 for snack (maintain):
+  0.842 - YEAST EXTRACT (other)
+  0.842 - FRUIT AND MILK DRINK (beverages)
+  0.831 - IDLI, MILLET (other)
+  0.826 - PLAIN DOSA W/ FILLING (other)
+  0.825 - SWEET MANGO CHUTNEY (fruits)
