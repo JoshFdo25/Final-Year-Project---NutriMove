@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -50,6 +52,26 @@ class AuthService {
 
   /// Sign out
   Future<void> signOut() async {
+    // 1. Stop background activity tracking to prevent service leakage
+    try {
+      final service = FlutterBackgroundService();
+      if (await service.isRunning()) {
+        service.invoke("stopService");
+      }
+    } catch (e) {
+      print("Error stopping service: $e");
+    }
+
+    // 2. Clear all local user data (Preferences, HAR tracking history, RL weights)
+    // to prevent cross-account data leakage
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+    } catch (e) {
+      print("Error clearing preferences: $e");
+    }
+
+    // 3. Sign out of identity providers
     await _googleSignIn.signOut();
     await _auth.signOut();
   }

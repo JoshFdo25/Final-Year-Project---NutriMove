@@ -20,6 +20,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _realActivityCalories = 0.0;
   StreamSubscription<Map<String, dynamic>?>? _serviceListener;
   Map<String, MealRecommendation>? _dailyMeals;
+  Map<String, Map<String, dynamic>> _loggedMeals = {};
   bool _loadingMeals = true;
 
   @override
@@ -34,10 +35,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final profile = auth.userProfile;
     if (profile == null) return;
     try {
+      final logged = await MealRecommendationService.getLoggedMeals();
       final meals = await MealRecommendationService.recommendDailyMeals(
         profile: profile,
       );
-      if (mounted) setState(() { _dailyMeals = meals; _loadingMeals = false; });
+      if (mounted) {
+        setState(() { 
+          _loggedMeals = logged;
+          _dailyMeals = meals; 
+          _loadingMeals = false; 
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _loadingMeals = false);
     }
@@ -77,18 +85,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Calculate energy data
     final bmr = EnergyService.calculateBmr(profile);
-    // Simulated activity for display (will be replaced by real tracking)
     final activityDurations = <String, double>{};
     final summary = EnergyService.generateDailySummary(
       profile,
       activityDurations,
     );
-    final dailyTarget = summary['dailyTarget'] as double;
-    final totalConsumed = summary['totalConsumed'] as double;
-    final macros = summary['macros'] as Map<String, double>;
     final activityCalories = _realActivityCalories; // Live stream instead of dummy!
-    final remaining = (dailyTarget - totalConsumed + activityCalories).clamp(0, double.infinity).toDouble();
+    
+    // Add real activity calories to the baseline target to get the truly adaptive target
+    final adaptiveDailyTarget = (summary['dailyTarget'] as double) + activityCalories;
+    final totalConsumed = summary['totalConsumed'] as double;
+    
+    // Recalculate macro targets based on the ADAPTIVE daily target (so targets expand as you run)
+    final macros = EnergyService.calculateMacroTargets(adaptiveDailyTarget, profile);
+    
+    final remaining = (adaptiveDailyTarget - totalConsumed).clamp(0, double.infinity).toDouble();
 
+    double consumedProtein = 0.0;
+    double consumedCarbs = 0.0;
+    double consumedFat = 0.0;
+    double customTotalConsumed = 0.0;
+
+    for (var meal in _loggedMeals.values) {
+      consumedProtein += (meal['proteinTotal'] ?? 0.0).toDouble();
+      consumedCarbs += (meal['carbsTotal'] ?? 0.0).toDouble();
+      consumedFat += (meal['fatTotal'] ?? 0.0).toDouble();
+      customTotalConsumed += (meal['totalCalories'] ?? 0.0).toDouble();
+    }
+    
+    // Override the generic generated totalConsumed with the actual logged calories
+    final actualRemaining = (adaptiveDailyTarget - customTotalConsumed).clamp(0, double.infinity).toDouble();
     return Scaffold(
       appBar: AppBar(
         title: Text('Hi, ${profile.name.split(' ').first}! 👋'),
@@ -121,15 +147,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: 200,
                             height: 200,
                             child: CircularProgressIndicator(
-                              value: dailyTarget > 0
-                                  ? (totalConsumed / dailyTarget).clamp(0, 1)
+                              value: adaptiveDailyTarget > 0
+                                  ? (customTotalConsumed / adaptiveDailyTarget).clamp(0, 1)
                                   : 0,
                               strokeWidth: 12,
                               backgroundColor: isDark
                                   ? Colors.grey.shade800
                                   : Colors.grey.shade200,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                totalConsumed > dailyTarget
+                                customTotalConsumed > adaptiveDailyTarget
                                     ? Colors.red
                                     : Theme.of(context).colorScheme.primary,
                               ),
@@ -137,10 +163,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                remaining.toStringAsFixed(0),
-                                style: Theme.of(context)
+                              children: [
+                                Text(
+                                  actualRemaining.toStringAsFixed(0),
+                                  style: Theme.of(context)
                                     .textTheme
                                     .headlineLarge
                                     ?.copyWith(
@@ -166,14 +192,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         _buildCalorieStat(
                           context,
                           'Target',
-                          dailyTarget.toStringAsFixed(0),
+                          adaptiveDailyTarget.toStringAsFixed(0),
                           Icons.flag,
                           Colors.green,
                         ),
                         _buildCalorieStat(
                           context,
                           'Consumed',
-                          totalConsumed.toStringAsFixed(0),
+                          customTotalConsumed.toStringAsFixed(0),
                           Icons.restaurant,
                           Colors.orange,
                         ),
@@ -243,14 +269,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                     ),
                     const SizedBox(height: 16),
-                    _buildMacroBar(context, 'Protein',
-                        '${macros['proteinG']!.toStringAsFixed(0)}g', 0, Colors.red.shade400),
+                    _buildMacroBar(context, 'Protein', macros['proteinG'] ?? 0.0,
+                        consumedProtein, Colors.red.shade400),
                     const SizedBox(height: 12),
-                    _buildMacroBar(context, 'Carbs',
-                        '${macros['carbsG']!.toStringAsFixed(0)}g', 0, Colors.amber.shade600),
+                    _buildMacroBar(context, 'Carbs', macros['carbsG'] ?? 0.0,
+                        consumedCarbs, Colors.amber.shade600),
                     const SizedBox(height: 12),
-                    _buildMacroBar(context, 'Fat',
-                        '${macros['fatG']!.toStringAsFixed(0)}g', 0, Colors.blue.shade400),
+                    _buildMacroBar(context, 'Fat', macros['fatG'] ?? 0.0,
+                        consumedFat, Colors.blue.shade400),
                   ],
                 ),
               ),
@@ -300,7 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       final ratio = distribution[entry.$1] ?? 0.25;
                       return _buildAiMealSlot(
                         context, entry.$1, entry.$2, entry.$3,
-                        dailyTarget * ratio,
+                        adaptiveDailyTarget * ratio,
                       );
                     }),
                   ],
@@ -352,8 +378,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMacroBar(BuildContext context, String label, String target,
+  Widget _buildMacroBar(BuildContext context, String label, double target,
       double consumed, Color color) {
+    double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -361,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-            Text('0 / $target',
+            Text('${consumed.toStringAsFixed(0)}g / ${target.toStringAsFixed(0)}g',
                 style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
           ],
         ),
@@ -369,7 +396,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: 0, // Will be updated with real tracking
+            value: progress,
             minHeight: 8,
             backgroundColor: color.withOpacity(0.2),
             valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -381,37 +408,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildAiMealSlot(BuildContext context, String mealKey,
       String displayName, String emoji, double targetCal) {
+    final isLogged = _loggedMeals.containsKey(mealKey);
+    final loggedData = _loggedMeals[mealKey];
+    
     final rec = _dailyMeals?[mealKey];
     final hasRec = rec != null && rec.foods.isNotEmpty;
-    final preview = hasRec
-        ? rec.foods.take(2).map((f) => f.food.name.split(',').first).join(', ')
-        : null;
-    final totalCal = hasRec ? rec.totalCalories : 0.0;
+    
+    String subtitleText;
+    if (isLogged) {
+      subtitleText = '${(loggedData?['totalCalories'] ?? 0.0).toStringAsFixed(0)} kcal • Eaten';
+    } else if (hasRec) {
+      final preview = rec.foods.take(2).map((f) => f.food.name.split(',').first).join(', ');
+      subtitleText = '${rec.totalCalories.toStringAsFixed(0)} kcal • $preview';
+    } else {
+      subtitleText = 'Target: ${targetCal.toStringAsFixed(0)} kcal';
+    }
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Text(emoji, style: const TextStyle(fontSize: 28)),
       title: Text(displayName),
-      subtitle: hasRec
-          ? Text(
-              '${totalCal.toStringAsFixed(0)} kcal • $preview',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            )
-          : Text(
-              'Target: ${targetCal.toStringAsFixed(0)} kcal',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-      trailing: hasRec
-          ? Icon(Icons.auto_awesome,
-              color: Theme.of(context).colorScheme.primary, size: 20)
-          : _loadingMeals
-              ? const SizedBox(
-                  width: 16, height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : null,
+      subtitle: Text(
+        subtitleText,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 12, color: isLogged ? Colors.green : Colors.grey.shade600),
+      ),
+      trailing: isLogged
+          ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
+          : hasRec
+              ? Icon(Icons.auto_awesome,
+                  color: Theme.of(context).colorScheme.primary, size: 20)
+              : _loadingMeals
+                  ? const SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : null,
       onTap: () {
+        if (isLogged) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Meal already logged!')),
+          );
+          return;
+        }
         Navigator.push(
           context,
           MaterialPageRoute(

@@ -18,6 +18,7 @@ import '../models/user_profile.dart';
 import '../utils/constants.dart';
 import 'adaptive_tdee_service.dart';
 import 'preference_learning_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// A single food item from the database.
 class FoodItem {
@@ -157,6 +158,45 @@ class MealRecommendation {
 class MealRecommendationService {
   static List<FoodItem>? _foodsCache;
   static List<Recipe>? _recipesCache;
+
+  // ─────────────────────────────────────────────────────────
+  // LOGGED MEALS
+  // ─────────────────────────────────────────────────────────
+
+  static Future<void> logAcceptedMeal(String mealType, MealRecommendation rec) async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+    final key = "logged_meals_$today";
+    
+    final mealData = {
+      'mealType': mealType,
+      'totalCalories': rec.totalCalories,
+      'proteinTotal': rec.proteinTotal,
+      'carbsTotal': rec.carbsTotal,
+      'fatTotal': rec.fatTotal,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+    
+    String existingStr = prefs.getString(key) ?? "{}";
+    Map<String, dynamic> logged = jsonDecode(existingStr);
+    logged[mealType] = mealData;
+    
+    await prefs.setString(key, jsonEncode(logged));
+  }
+
+  static Future<Map<String, Map<String, dynamic>>> getLoggedMeals() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+    final key = "logged_meals_$today";
+    
+    String existingStr = prefs.getString(key) ?? "{}";
+    try {
+      final decoded = jsonDecode(existingStr) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, v as Map<String, dynamic>));
+    } catch(e) {
+      return {};
+    }
+  }
 
   // ─────────────────────────────────────────────────────────
   // DATA LOADING

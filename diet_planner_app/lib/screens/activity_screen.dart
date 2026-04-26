@@ -119,33 +119,39 @@ class _ActivityScreenState extends State<ActivityScreen>
                 child: Column(
                   children: [
                     if (_isTracking) ...[
-                      AnimatedBuilder(
-                        animation: _pulseController,
-                        builder: (context, child) {
-                          return Container(
-                            width: 120 + (_pulseController.value * 10),
-                            height: 120 + (_pulseController.value * 10),
-                            decoration: BoxDecoration(
-                              color: activityColor.withOpacity(0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 100,
-                                height: 100,
+                      SizedBox(
+                        width: 140,
+                        height: 140,
+                        child: Center(
+                          child: AnimatedBuilder(
+                            animation: _pulseController,
+                            builder: (context, child) {
+                              return Container(
+                                width: 120 + (_pulseController.value * 10),
+                                height: 120 + (_pulseController.value * 10),
                                 decoration: BoxDecoration(
-                                  color: activityColor.withOpacity(0.3),
+                                  color: activityColor.withOpacity(0.15),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(
-                                  _getActivityIcon(_currentActivity),
-                                  size: 48,
-                                  color: activityColor,
+                                child: Center(
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: activityColor.withOpacity(0.3),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      _getActivityIcon(_currentActivity),
+                                      size: 48,
+                                      color: activityColor,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          );
-                        },
+                              );
+                            },
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(

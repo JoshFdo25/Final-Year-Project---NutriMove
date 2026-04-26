@@ -71,11 +71,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       mealType: widget.mealKey,
       foodGroups: _rec!.foods.map((f) => f.food.foodGroup).toList(),
     );
+    
+    // Log meal for dashboard tracking
+    await MealRecommendationService.logAcceptedMeal(widget.mealKey, _rec!);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ Meal accepted! Your preferences are learning.'),
+          content: Text('✅ Meal logged! Dashboard macros updated.'),
           backgroundColor: Colors.green,
         ),
       );

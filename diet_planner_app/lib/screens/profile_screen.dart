@@ -119,48 +119,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Row(
+                child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primary,
-                      child: Text(
-                        (profile?.name ?? 'U')[0].toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_editing)
-                            TextFormField(
-                              controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Name',
-                                isDense: true,
-                              ),
-                            )
-                          else
-                            Text(
-                              profile?.name ?? 'User',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          child: Text(
+                            (profile?.name ?? 'U')[0].toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                          const SizedBox(height: 4),
-                          Text(
-                            authProvider.user?.email ?? '',
-                            style: TextStyle(color: Colors.grey.shade600),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_editing)
+                                TextFormField(
+                                  controller: _nameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Name',
+                                    isDense: true,
+                                  ),
+                                )
+                              else
+                                Text(
+                                  profile?.name ?? 'User',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              const SizedBox(height: 4),
+                              Text(
+                                authProvider.user?.email ?? '',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await authProvider.signOut();
+                          if (context.mounted) {
+                            Navigator.pushReplacementNamed(context, '/login');
+                          }
+                        },
+                        icon: const Icon(Icons.logout, color: Colors.red),
+                        label: const Text(
+                          'Sign Out',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
                       ),
                     ),
                   ],
@@ -359,28 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Logout
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  await authProvider.signOut();
-                  if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/login');
-                  }
-                },
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
-                  'Sign Out',
-                  style: TextStyle(color: Colors.red),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
+
 
             // Blocked Foods
             if (_blockedFoods.isNotEmpty) ...[
