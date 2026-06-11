@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'dart:async';
+import '../providers/tracking_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/energy_service.dart';
+import '../services/meal_recommendation_service.dart';
 
 class SummaryScreen extends StatefulWidget {
   const SummaryScreen({super.key});
@@ -13,57 +13,31 @@ class SummaryScreen extends StatefulWidget {
 }
 
 class _SummaryScreenState extends State<SummaryScreen> {
-  Map<String, double> _liveActivities = {
-    'Walking': 0.0,
-    'Jogging': 0.0,
-    'Stairs': 0.0,
-    'Sitting': 0.0,
-    'Standing': 0.0,
-  };
-  Map<String, double> _liveCalories = {
-    'Walking': 0.0,
-    'Jogging': 0.0,
-    'Stairs': 0.0,
-    'Sitting': 0.0,
-    'Standing': 0.0,
-  };
-  double _trackerCalories = 0.0;
-  StreamSubscription<Map<String, dynamic>?>? _serviceListener;
+  Map<String, Map<String, dynamic>> _loggedMeals = {};
 
   @override
   void initState() {
     super.initState();
-    _listenToBackend();
+    _loadLoggedMeals();
+    MealRecommendationService.mealUpdateNotifier.addListener(_loadLoggedMeals);
   }
 
-  void _listenToBackend() async {
-    final service = FlutterBackgroundService();
-    
-    // Quick load if running
-    if (await service.isRunning()) {
-      setState(() {}); 
-    }
-
-    _serviceListener = service.on('update').listen((event) {
-      if (event != null && mounted) {
+  Future<void> _loadLoggedMeals() async {
+    try {
+      final logged = await MealRecommendationService.getLoggedMeals();
+      if (mounted) {
         setState(() {
-          _trackerCalories = event['calories'] ?? 0.0;
-          if (event['activityDurations'] != null) {
-            Map<dynamic, dynamic> d = event['activityDurations'];
-            _liveActivities = d.map((k, v) => MapEntry(k.toString(), (v as num) / 60.0));
-          }
-          if (event['activityCaloriesMap'] != null) {
-            Map<dynamic, dynamic> c = event['activityCaloriesMap'];
-            _liveCalories = c.map((k, v) => MapEntry(k.toString(), (v as num).toDouble()));
-          }
+          _loggedMeals = logged;
         });
       }
-    });
+    } catch (e) {
+      // Ignore
+    }
   }
 
   @override
   void dispose() {
-    _serviceListener?.cancel();
+    MealRecommendationService.mealUpdateNotifier.removeListener(_loadLoggedMeals);
     super.dispose();
   }
 
@@ -76,24 +50,54 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
     final bmr = EnergyService.calculateBmr(profile);
 
+    final tracking = context.watch<TrackingProvider>();
+
     // AI Generative Summary
     final summary = EnergyService.generateDailySummary(
       profile,
-      _liveActivities,
-      mealsEaten: {'breakfast': 420, 'lunch': 550},
+      tracking.activityDurationsMinutes,
     );
     final dailyTarget = summary['dailyTarget'] as double;
-    final activityCalories = _trackerCalories; // Trusting dynamic GPS calculations natively
-    final totalConsumed = summary['totalConsumed'] as double;
-    final remaining = dailyTarget - activityCalories + totalConsumed; // Custom dynamic recalculation
+    final activityCalories = tracking.totalCalories;
 
-    // Per-activity calorie breakdown (Static approximation vs GPS)
-    final activityResults = summary['activities'] as Map<String, dynamic>;
+    double customTotalConsumed = 0.0;
+    for (var meal in _loggedMeals.values) {
+      customTotalConsumed += (meal['totalCalories'] ?? 0.0).toDouble();
+    }
+
+    final adaptiveTarget = dailyTarget + activityCalories;
+    final remaining = (adaptiveTarget - customTotalConsumed).clamp(0, double.infinity).toDouble(); 
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daily Summary')),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Daily Summary'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).scaffoldBackgroundColor,
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.0),
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+          left: 16,
+          right: 16,
+          bottom: 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -126,7 +130,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             Colors.red),
                         _buildCircleStat(
                             context,
-                            totalConsumed.toStringAsFixed(0),
+                            customTotalConsumed.toStringAsFixed(0),
                             'Eaten',
                             Colors.orange),
                         _buildCircleStat(
@@ -146,27 +150,34 @@ class _SummaryScreenState extends State<SummaryScreen> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '🏃 Activity Breakdown',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        const Icon(Icons.directions_run, color: Colors.blue, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Activity Breakdown',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
-                    ..._liveActivities.entries.where((e) => e.value > 0).map((entry) {
+                    ...tracking.activityDurationsMinutes.entries.where((e) => e.value > 0).map((entry) {
                       final actName = entry.key;
                       final min = entry.value;
-                      final cal = _liveCalories[actName] ?? 0.0;
+                      final cal = tracking.activityCalories[actName] ?? 0.0;
                       // Dynamic GPS MET Formula: Cal = MET * Weight * H
                       // Therefore: MET = Cal / Weight / H
                       final hours = min > 0 ? (min / 60.0) : 0.001; // protect zero div
                       final dynamicMet = cal / profile.weightKg / hours;
                       
-                      final totalMin = _liveActivities.values
+                      final totalMin = tracking.activityDurationsMinutes.values
                           .fold(0.0, (a, b) => a + b);
                       final pct = entry.value / totalMin;
 
@@ -179,7 +190,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: _getColor(entry.key)
-                                    .withOpacity(0.2),
+                                    .withValues(alpha: 0.2),
                                 borderRadius:
                                     BorderRadius.circular(12),
                               ),
@@ -231,7 +242,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                                       minHeight: 6,
                                       backgroundColor:
                                           _getColor(entry.key)
-                                              .withOpacity(0.15),
+                                              .withValues(alpha: 0.15),
                                       valueColor:
                                           AlwaysStoppedAnimation(
                                         _getColor(entry.key),
@@ -245,7 +256,16 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         ),
                       );
                     }),
+                    if (tracking.activityDurationsMinutes.values.where((v) => v > 0).isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'No activity tracked yet today.',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
                   ],
+                ),
                 ),
               ),
             ),
@@ -258,12 +278,17 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '⚡ Energy Calculation',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        const Icon(Icons.flash_on, color: Colors.amber, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Energy Calculation',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     _buildCalcRow('BMR (Resting)', bmr, Colors.purple),
@@ -297,7 +322,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
             // ─── Explanation Card (XAI) ────────────
             Card(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -340,21 +365,26 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '📐 Why Live Tracking Matters',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        const Icon(Icons.explore, color: Colors.teal, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Why Live Tracking Matters',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.05),
+                        color: Colors.red.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: Colors.red.withOpacity(0.2)),
+                            color: Colors.red.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -388,10 +418,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.05),
+                        color: Colors.green.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: Colors.green.withOpacity(0.2)),
+                            color: Colors.green.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -425,7 +455,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -440,7 +470,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
           child: Center(

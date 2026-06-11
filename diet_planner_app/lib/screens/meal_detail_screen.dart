@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/meal_recommendation_service.dart';
 import '../services/preference_learning_service.dart';
+import '../utils/constants.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final String mealName;
   final String mealKey;
-  final String emoji;
   final double targetCalories;
   final MealRecommendation? recommendation;
 
@@ -15,7 +15,6 @@ class MealDetailScreen extends StatefulWidget {
     super.key,
     required this.mealName,
     required this.mealKey,
-    required this.emoji,
     required this.targetCalories,
     this.recommendation,
   });
@@ -46,10 +45,15 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     final profile = auth.userProfile;
     if (profile == null) return;
 
+    final distribution = getMealDistribution(profile.goal);
+    final ratio = distribution[widget.mealKey] ?? 0.30;
+    final extrapolatedDailyTarget = widget.targetCalories / ratio;
+
     final rec = await MealRecommendationService.recommendMeal(
       profile: profile,
       mealType: widget.mealKey,
       skipFoodIds: _skipFoodIds,
+      customDailyTarget: extrapolatedDailyTarget,
     );
     if (mounted) {
       setState(() {
@@ -70,6 +74,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       type: FeedbackType.accept,
       mealType: widget.mealKey,
       foodGroups: _rec!.foods.map((f) => f.food.foodGroup).toList(),
+      foodIds: _rec!.foods.map((f) => f.food.id).toList(),
     );
     
     // Log meal for dashboard tracking
@@ -78,7 +83,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ Meal logged! Dashboard macros updated.'),
+          content: Text('Meal logged! Dashboard macros updated.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -96,6 +101,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       type: FeedbackType.block,
       mealType: widget.mealKey,
       foodGroups: [food.food.foodGroup],
+      foodIds: [food.food.id],
     );
     _skipFoodIds.add(food.food.id);
     await _regenerate();
@@ -103,7 +109,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('🚫 "${food.food.name}" will never be recommended again'),
+          content: Text('"${food.food.name}" will never be recommended again'),
           action: SnackBarAction(
             label: 'Undo',
             onPressed: () async {
@@ -117,6 +123,96 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     }
   }
 
+  void _performSwap(RecommendedFood oldItem, RecommendedFood newItem) {
+    if (_rec == null) return;
+    
+    final newFoods = List<RecommendedFood>.from(_rec!.foods);
+    final index = newFoods.indexOf(oldItem);
+    if (index != -1) {
+      newFoods[index] = newItem;
+    } else {
+      newFoods.add(newItem);
+    }
+    
+    final newTotalCals = newFoods.fold(0.0, (sum, f) => sum + f.portionCalories);
+    
+    setState(() {
+      _rec = MealRecommendation(
+        mealType: _rec!.mealType,
+        targetCalories: _rec!.targetCalories,
+        totalCalories: newTotalCals,
+        foods: newFoods,
+        matchingRecipe: _rec!.matchingRecipe,
+        explanation: 'Customized meal via Smart Swap.',
+        generatedAt: DateTime.now(),
+      );
+    });
+  }
+
+  Future<void> _showSwapSheet(RecommendedFood rf) async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final profile = auth.userProfile;
+    if (profile == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return FutureBuilder<List<FoodItem>>(
+          future: MealRecommendationService.getAlternatives(rf.food, profile, widget.mealKey),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+            }
+            final alts = snapshot.data!;
+            if (alts.isEmpty) {
+              return const SizedBox(height: 200, child: Center(child: Text('No suitable alternatives found.')));
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Swap ${rf.food.name}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  ...alts.map((alt) {
+                    // Calculate precise portion for this alternative based on the removed item's calories
+                    final newRf = MealRecommendationService.solvePortion(alt, rf.portionCalories, widget.mealKey);
+                    
+                    return ListTile(
+                      leading: Icon(_groupIcon(alt.foodGroup), color: _groupColor(alt.foodGroup)),
+                      title: Text(alt.name),
+                      subtitle: Text('${newRf.portionAmount.toStringAsFixed(1).replaceAll(RegExp(r"\\.0$"), "")} ${newRf.portionUnit.trim()} • ${newRf.portionCalories.toStringAsFixed(0)} kcal'),
+                      trailing: ElevatedButton(
+                        onPressed: () {
+                          // Record RL swap feedback (learns from this choice)
+                          PreferenceLearningService.recordFeedback(
+                            type: FeedbackType.swap,
+                            mealType: widget.mealKey,
+                            foodGroups: [rf.food.foodGroup],
+                            foodIds: [rf.food.id],
+                            swappedFoodGroup: alt.foodGroup,
+                            swappedFoodId: alt.id,
+                          );
+                          _performSwap(rf, newRf);
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Select'),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _rateMeal(int rating) async {
     if (_rec == null) return;
     setState(() => _rating = rating);
@@ -125,13 +221,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       type: FeedbackType.rate,
       mealType: widget.mealKey,
       foodGroups: _rec!.foods.map((f) => f.food.foodGroup).toList(),
+      foodIds: _rec!.foods.map((f) => f.food.id).toList(),
       rating: rating.toDouble(),
     );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⭐ Rated $rating/5 — Thanks for the feedback!'),
+          content: Text('Rated $rating/5 — Thanks for the feedback!'),
         ),
       );
     }
@@ -142,9 +239,37 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
+    // Check for high fat warning
+    bool showFatWarning = false;
+    if (_rec != null && _rec!.totalCalories > 0) {
+      // If fat calories (>9 kcal per gram) exceed 35% of total meal calories
+      if ((_rec!.fatTotal * 9.0) > (_rec!.totalCalories * 0.35)) {
+        showFatWarning = true;
+      }
+    }
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('${widget.emoji} ${widget.mealName}'),
+        title: Text(widget.mealName),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).scaffoldBackgroundColor,
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.0),
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -165,19 +290,44 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               ),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                left: 16,
+                right: 16,
+                bottom: 16,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (showFatWarning)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        border: Border.all(color: Colors.red.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Warning: High Fat Content. Consider swapping an ingredient for a leaner option.',
+                              style: TextStyle(color: Colors.red.shade900, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   // ─── Budget Card ───────────────────────
                   Card(
-                    color: primaryColor.withOpacity(0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
-                          Text(widget.emoji,
-                              style: const TextStyle(fontSize: 40)),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
@@ -263,12 +413,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '📊 Meal Macros',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            Row(
+                              children: [
+                                const Icon(Icons.pie_chart, color: Colors.blue, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Meal Macros',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 16),
                             _buildMacroRow(
@@ -502,7 +657,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _groupColor(rf.food.foodGroup).withOpacity(0.15),
+                    color: _groupColor(rf.food.foodGroup).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -541,6 +696,16 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       size: 18, color: Colors.grey.shade500),
                   itemBuilder: (context) => [
                     const PopupMenuItem(
+                      value: 'swap',
+                      child: Row(
+                        children: [
+                          Icon(Icons.swap_horiz, size: 18),
+                          SizedBox(width: 8),
+                          Text('Swap'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
                       value: 'skip',
                       child: Row(
                         children: [
@@ -563,6 +728,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     ),
                   ],
                   onSelected: (action) {
+                    if (action == 'swap') _showSwapSheet(rf);
                     if (action == 'skip') _skipFood(rf);
                     if (action == 'block') _blockFood(rf);
                   },
@@ -611,7 +777,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Center(

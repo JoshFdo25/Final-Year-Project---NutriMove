@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+import '../providers/tracking_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/energy_service.dart';
 import '../services/meal_recommendation_service.dart';
-import '../services/adaptive_tdee_service.dart';
-import '../utils/constants.dart';
-import 'meal_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,17 +14,13 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  double _realActivityCalories = 0.0;
-  StreamSubscription<Map<String, dynamic>?>? _serviceListener;
-  Map<String, MealRecommendation>? _dailyMeals;
   Map<String, Map<String, dynamic>> _loggedMeals = {};
-  bool _loadingMeals = true;
 
   @override
   void initState() {
     super.initState();
-    _listenToTracker();
     _loadRecommendations();
+    MealRecommendationService.mealUpdateNotifier.addListener(_loadRecommendations);
   }
 
   Future<void> _loadRecommendations() async {
@@ -36,38 +29,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (profile == null) return;
     try {
       final logged = await MealRecommendationService.getLoggedMeals();
-      final meals = await MealRecommendationService.recommendDailyMeals(
-        profile: profile,
-      );
       if (mounted) {
-        setState(() { 
+        setState(() {
           _loggedMeals = logged;
-          _dailyMeals = meals; 
-          _loadingMeals = false; 
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _loadingMeals = false);
+      // Ignore
     }
-  }
-
-  void _listenToTracker() {
-    final service = FlutterBackgroundService();
-    _serviceListener = service.on('update').listen((event) {
-      if (event != null && mounted) {
-        final cals = (event['calories'] ?? 0.0).toDouble();
-        setState(() {
-          _realActivityCalories = cals;
-        });
-        // Feed adaptive TDEE learner with latest burn data
-        AdaptiveTdeeService.recordDailyBurn(cals);
-      }
-    });
   }
 
   @override
   void dispose() {
-    _serviceListener?.cancel();
+    MealRecommendationService.mealUpdateNotifier.removeListener(_loadRecommendations);
     super.dispose();
   }
 
@@ -78,9 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (profile == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Calculate energy data
@@ -90,16 +62,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       profile,
       activityDurations,
     );
-    final activityCalories = _realActivityCalories; // Live stream instead of dummy!
-    
+    final activityCalories = context.watch<TrackingProvider>().totalCalories;
+
     // Add real activity calories to the baseline target to get the truly adaptive target
-    final adaptiveDailyTarget = (summary['dailyTarget'] as double) + activityCalories;
-    final totalConsumed = summary['totalConsumed'] as double;
-    
+    final adaptiveDailyTarget =
+        (summary['dailyTarget'] as double) + activityCalories;
     // Recalculate macro targets based on the ADAPTIVE daily target (so targets expand as you run)
-    final macros = EnergyService.calculateMacroTargets(adaptiveDailyTarget, profile);
-    
-    final remaining = (adaptiveDailyTarget - totalConsumed).clamp(0, double.infinity).toDouble();
+    final macros = EnergyService.calculateMacroTargets(
+      adaptiveDailyTarget,
+      profile,
+    );
 
     double consumedProtein = 0.0;
     double consumedCarbs = 0.0;
@@ -112,15 +84,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
       consumedFat += (meal['fatTotal'] ?? 0.0).toDouble();
       customTotalConsumed += (meal['totalCalories'] ?? 0.0).toDouble();
     }
-    
+
     // Override the generic generated totalConsumed with the actual logged calories
-    final actualRemaining = (adaptiveDailyTarget - customTotalConsumed).clamp(0, double.infinity).toDouble();
+    final actualRemaining = (adaptiveDailyTarget - customTotalConsumed)
+        .clamp(0, double.infinity)
+        .toDouble();
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Hi, ${profile.name.split(' ').first}! 👋'),
+        title: Text('Hi, ${profile.name.split(' ').first}!'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).scaffoldBackgroundColor,
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 1.0),
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.0),
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+          left: 16,
+          right: 16,
+          bottom: 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -133,8 +131,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(
                       'Daily Calorie Budget',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
@@ -148,7 +146,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             height: 200,
                             child: CircularProgressIndicator(
                               value: adaptiveDailyTarget > 0
-                                  ? (customTotalConsumed / adaptiveDailyTarget).clamp(0, 1)
+                                  ? (customTotalConsumed / adaptiveDailyTarget)
+                                        .clamp(0, 1)
                                   : 0,
                               strokeWidth: 12,
                               backgroundColor: isDark
@@ -163,15 +162,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  actualRemaining.toStringAsFixed(0),
-                                  style: Theme.of(context)
-                                    .textTheme
-                                    .headlineLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            children: [
+                              Text(
+                                actualRemaining.toStringAsFixed(0),
+                                style: Theme.of(context).textTheme.headlineLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 'kcal remaining',
@@ -225,28 +220,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '🔥 Energy Overview',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    Row(
+                      children: [
+                        const Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Energy Overview',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
-                    _buildInfoRow(context, 'BMR (Resting)',
-                        '${bmr.toStringAsFixed(0)} kcal', Icons.bedtime),
                     _buildInfoRow(
-                        context,
-                        'Activity Burn',
-                        '${activityCalories.toStringAsFixed(0)} kcal',
-                        Icons.directions_run),
+                      context,
+                      'BMR (Resting)',
+                      '${bmr.toStringAsFixed(0)} kcal',
+                      Icons.bedtime,
+                    ),
+                    _buildInfoRow(
+                      context,
+                      'Activity Burn',
+                      '${activityCalories.toStringAsFixed(0)} kcal',
+                      Icons.directions_run,
+                    ),
                     _buildInfoRow(
                       context,
                       'Goal',
                       profile.goal == 'lose'
                           ? 'Lose weight (-500 kcal)'
                           : profile.goal == 'gain'
-                              ? 'Gain weight (+300 kcal)'
-                              : 'Maintain weight',
+                          ? 'Gain weight (+300 kcal)'
+                          : 'Maintain weight',
                       Icons.track_changes,
                     ),
                   ],
@@ -262,87 +268,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '📊 Macronutrient Targets',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildMacroBar(context, 'Protein', macros['proteinG'] ?? 0.0,
-                        consumedProtein, Colors.red.shade400),
-                    const SizedBox(height: 12),
-                    _buildMacroBar(context, 'Carbs', macros['carbsG'] ?? 0.0,
-                        consumedCarbs, Colors.amber.shade600),
-                    const SizedBox(height: 12),
-                    _buildMacroBar(context, 'Fat', macros['fatG'] ?? 0.0,
-                        consumedFat, Colors.blue.shade400),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ─── Meal Slots ────────────────────────
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
                     Row(
                       children: [
+                        const Icon(Icons.pie_chart, color: Colors.blue, size: 20),
+                        const SizedBox(width: 8),
                         Text(
-                          '🍽️ Today\'s Meals',
+                          'Macronutrient Targets',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const Spacer(),
-                        if (_loadingMeals)
-                          const SizedBox(
-                            width: 16, height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        else
-                          IconButton(
-                            icon: const Icon(Icons.refresh, size: 20),
-                            onPressed: () {
-                              setState(() => _loadingMeals = true);
-                              _loadRecommendations();
-                            },
-                            tooltip: 'Regenerate meals',
+                            fontWeight: FontWeight.bold,
                           ),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    _buildMacroBar(
+                      context,
+                      'Protein',
+                      macros['proteinG'] ?? 0.0,
+                      consumedProtein,
+                      Colors.red.shade400,
+                    ),
                     const SizedBox(height: 12),
-                    ...[
-                      ('breakfast', 'Breakfast', '🌅'),
-                      ('lunch', 'Lunch', '☀️'),
-                      ('dinner', 'Dinner', '🌙'),
-                      ('snack', 'Snacks', '🍎'),
-                    ].map((entry) {
-                      final distribution = getMealDistribution(profile.goal);
-                      final ratio = distribution[entry.$1] ?? 0.25;
-                      return _buildAiMealSlot(
-                        context, entry.$1, entry.$2, entry.$3,
-                        adaptiveDailyTarget * ratio,
-                      );
-                    }),
+                    _buildMacroBar(
+                      context,
+                      'Carbs',
+                      macros['carbsG'] ?? 0.0,
+                      consumedCarbs,
+                      Colors.amber.shade600,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMacroBar(
+                      context,
+                      'Fat',
+                      macros['fatG'] ?? 0.0,
+                      consumedFat,
+                      Colors.blue.shade400,
+                    ),
                   ],
                 ),
               ),
             ),
-            // Start tracking button removed: Managed centrally by MainWrapper
-            const SizedBox(height: 16),
+            // ─── Dietary Tab Notice ────────────────
+            Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: ListTile(
+                leading: const Icon(Icons.restaurant_menu),
+                title: const Text('Ready to eat?'),
+                subtitle: const Text(
+                  'Head over to the Diet tab to plan your meals.',
+                ),
+              ),
+            ),
+            const SizedBox(height: 80),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCalorieStat(BuildContext context, String label, String value,
-      IconData icon, Color color) {
+  Widget _buildCalorieStat(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -360,7 +350,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildInfoRow(
-      BuildContext context, String label, String value, IconData icon) {
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -369,17 +363,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 12),
           Text(label),
           const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
   }
 
-  Widget _buildMacroBar(BuildContext context, String label, double target,
-      double consumed, Color color) {
+  Widget _buildMacroBar(
+    BuildContext context,
+    String label,
+    double target,
+    double consumed,
+    Color color,
+  ) {
     double progress = target > 0 ? (consumed / target).clamp(0.0, 1.0) : 0.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,8 +384,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-            Text('${consumed.toStringAsFixed(0)}g / ${target.toStringAsFixed(0)}g',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            Text(
+              '${consumed.toStringAsFixed(0)}g / ${target.toStringAsFixed(0)}g',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -398,72 +396,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: 8,
-            backgroundColor: color.withOpacity(0.2),
+            backgroundColor: color.withValues(alpha: 0.2),
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAiMealSlot(BuildContext context, String mealKey,
-      String displayName, String emoji, double targetCal) {
-    final isLogged = _loggedMeals.containsKey(mealKey);
-    final loggedData = _loggedMeals[mealKey];
-    
-    final rec = _dailyMeals?[mealKey];
-    final hasRec = rec != null && rec.foods.isNotEmpty;
-    
-    String subtitleText;
-    if (isLogged) {
-      subtitleText = '${(loggedData?['totalCalories'] ?? 0.0).toStringAsFixed(0)} kcal • Eaten';
-    } else if (hasRec) {
-      final preview = rec.foods.take(2).map((f) => f.food.name.split(',').first).join(', ');
-      subtitleText = '${rec.totalCalories.toStringAsFixed(0)} kcal • $preview';
-    } else {
-      subtitleText = 'Target: ${targetCal.toStringAsFixed(0)} kcal';
-    }
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Text(emoji, style: const TextStyle(fontSize: 28)),
-      title: Text(displayName),
-      subtitle: Text(
-        subtitleText,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: 12, color: isLogged ? Colors.green : Colors.grey.shade600),
-      ),
-      trailing: isLogged
-          ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
-          : hasRec
-              ? Icon(Icons.auto_awesome,
-                  color: Theme.of(context).colorScheme.primary, size: 20)
-              : _loadingMeals
-                  ? const SizedBox(
-                      width: 16, height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : null,
-      onTap: () {
-        if (isLogged) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Meal already logged!')),
-          );
-          return;
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MealDetailScreen(
-              mealName: displayName,
-              mealKey: mealKey,
-              emoji: emoji,
-              targetCalories: targetCal,
-              recommendation: rec,
-            ),
-          ),
-        ).then((_) => _loadRecommendations()); // Refresh after returning
-      },
     );
   }
 }

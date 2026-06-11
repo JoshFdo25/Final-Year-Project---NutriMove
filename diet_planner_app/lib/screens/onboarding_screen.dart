@@ -450,7 +450,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.1) : null,
+          color: selected ? color.withValues(alpha: 0.1) : null,
           border: Border.all(
             color: selected ? color : Colors.grey.shade300,
             width: selected ? 2 : 1,
@@ -463,7 +463,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color),
@@ -504,7 +504,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: selected && enabled
-                ? primaryColor.withOpacity(0.1)
+                ? primaryColor.withValues(alpha: 0.1)
                 : null,
             border: Border.all(
               color: selected && enabled
@@ -567,7 +567,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: selected
-                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                 : null,
             border: Border.all(
               color: selected
@@ -610,7 +610,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: selected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
               : null,
           border: Border.all(
             color: selected
@@ -655,7 +655,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.1) : null,
+          color: selected ? color.withValues(alpha: 0.1) : null,
           border: Border.all(
             color: selected ? color : Colors.grey.shade300,
             width: selected ? 2 : 1,
@@ -668,7 +668,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color),

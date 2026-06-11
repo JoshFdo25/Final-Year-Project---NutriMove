@@ -35,14 +35,14 @@ class AppTheme {
       color: Colors.white,
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: primaryGreen,
-      foregroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
+      foregroundColor: const Color(0xFF1E1E1E),
       elevation: 0,
       centerTitle: true,
       titleTextStyle: GoogleFonts.inter(
         fontSize: 20,
         fontWeight: FontWeight.w600,
-        color: Colors.white,
+        color: const Color(0xFF1E1E1E),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -111,7 +111,7 @@ class AppTheme {
       color: const Color(0xFF1E1E1E),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: Colors.transparent,
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
