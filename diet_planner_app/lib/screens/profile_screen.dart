@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
-import '../providers/theme_provider.dart';
 import '../services/energy_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -89,14 +88,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final profile = authProvider.userProfile;
     final bmr = profile != null ? EnergyService.calculateBmr(profile) : 0.0;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Profile & Settings'),
+        title: const Text('Profile'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).scaffoldBackgroundColor,
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.0),
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
+          ),
+        ),
         actions: [
           if (!_editing)
             IconButton(
@@ -111,9 +128,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+          left: 16,
+          right: 16,
+          bottom: 16,
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // User avatar & name
             Card(
@@ -167,27 +189,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          await authProvider.signOut();
-                          if (context.mounted) {
-                            Navigator.pushReplacementNamed(context, '/login');
-                          }
-                        },
-                        icon: const Icon(Icons.logout, color: Colors.red),
-                        label: const Text(
-                          'Sign Out',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.red),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -220,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             setState(() => _age = v.round()),
                       ),
                       Text(
-                          'Weight: ${_weight.toStringAsFixed(1)} kg'),
+                          'Weight: ${_weight.toStringAsFixed(1)} kg / ${(_weight * 2.20462).toStringAsFixed(1)} lbs'),
                       Slider(
                         value: _weight,
                         min: 30,
@@ -232,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 v.toStringAsFixed(1))),
                       ),
                       Text(
-                          'Height: ${_height.toStringAsFixed(0)} cm'),
+                          'Height: ${_height.toStringAsFixed(0)} cm / ${(_height * 0.0328084).toStringAsFixed(1)} feet'),
                       Slider(
                         value: _height,
                         min: 100,
@@ -267,7 +268,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
 
             // Goal
             if (_editing)
@@ -283,44 +283,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               .titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(
-                              value: 'lose', label: Text('Lose')),
-                          ButtonSegment(
-                              value: 'maintain',
-                              label: Text('Maintain')),
-                          ButtonSegment(
-                              value: 'gain', label: Text('Gain')),
-                        ],
-                        selected: {_goal},
-                        onSelectionChanged: (value) =>
-                            setState(() => _goal = value.first),
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<String>(
+                          showSelectedIcon: false,
+                          segments: const [
+                            ButtonSegment(
+                                value: 'lose', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Lose'))),
+                            ButtonSegment(
+                                value: 'maintain',
+                                label: FittedBox(fit: BoxFit.scaleDown, child: Text('Maintain'))),
+                            ButtonSegment(
+                                value: 'gain', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Gain'))),
+                          ],
+                          selected: {_goal},
+                          onSelectionChanged: (value) =>
+                              setState(() => _goal = value.first),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
-
-            // Theme toggle
-            Card(
-              child: ListTile(
-                leading: Icon(
-                  themeProvider.isDarkMode
-                      ? Icons.dark_mode
-                      : Icons.light_mode,
-                ),
-                title: const Text('Dark Mode'),
-                subtitle: Text(
-                  themeProvider.isDarkMode ? 'On' : 'Off',
-                ),
-                trailing: Switch(
-                  value: themeProvider.isDarkMode,
-                  onChanged: (_) => themeProvider.toggleTheme(),
-                ),
-              ),
-            ),
             const SizedBox(height: 16),
 
             // Dietary Preference & Region
@@ -336,27 +320,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 16),
                     if (_editing) ...[
-                      Text('Dietary Type',
-                          style: Theme.of(context).textTheme.bodyMedium),
                       const SizedBox(height: 8),
-                      SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(
-                            value: 'non_vegetarian',
-                            label: Text('Non-Veg'),
-                            icon: Icon(Icons.restaurant),
-                          ),
-                          ButtonSegment(
-                            value: 'vegetarian',
-                            label: Text('Vegetarian'),
-                            icon: Icon(Icons.eco),
-                          ),
-                        ],
-                        selected: {_dietaryPreference},
-                        onSelectionChanged: (value) =>
-                            setState(() => _dietaryPreference = value.first),
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<String>(
+                          showSelectedIcon: false,
+                          segments: const [
+                            ButtonSegment(
+                              value: 'non_vegetarian',
+                              label: FittedBox(fit: BoxFit.scaleDown, child: Text('Non-Veg')),
+                              icon: Icon(Icons.restaurant),
+                            ),
+                            ButtonSegment(
+                              value: 'vegetarian',
+                              label: FittedBox(fit: BoxFit.scaleDown, child: Text('Vegetarian')),
+                              icon: Icon(Icons.eco),
+                            ),
+                          ],
+                          selected: {_dietaryPreference},
+                          onSelectionChanged: (value) =>
+                              setState(() => _dietaryPreference = value.first),
+                        ),
                       ),
                     ] else ...[
                       _buildStatRow(
@@ -382,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 80),
 
 
 
@@ -437,7 +422,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 80),
             ],
           ],
         ),
