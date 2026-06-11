@@ -4,14 +4,8 @@
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
     
-    <!-- Permissions for GPS (Geolocator) -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
     <!-- Permissions for Background Service and Wakelock -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -21,9 +15,10 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
-        android:label="diet_planner_app"
+        android:label="NutriMove"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher">
         <property android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" android:value="Continuous Activity Sensing Pipeline" />
         <activity
             android:name=".MainActivity"
@@ -56,7 +51,7 @@
         <!-- Background Service Configuration -->
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:foregroundServiceType="location|specialUse"
+            android:foregroundServiceType="specialUse"
             android:exported="true" />
     </application>
     <!-- Required to query activities that can process text, see:
