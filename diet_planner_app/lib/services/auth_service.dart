@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -59,7 +60,7 @@ class AuthService {
         service.invoke("stopService");
       }
     } catch (e) {
-      print("Error stopping service: $e");
+      debugPrint("Error stopping service: $e");
     }
 
     // 2. Clear all local user data (Preferences, HAR tracking history, RL weights)
@@ -68,7 +69,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
     } catch (e) {
-      print("Error clearing preferences: $e");
+      debugPrint("Error clearing preferences: $e");
     }
 
     // 3. Sign out of identity providers

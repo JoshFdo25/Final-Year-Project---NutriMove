@@ -13,6 +13,7 @@ library;
 
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/user_profile.dart';
 import '../utils/constants.dart';
@@ -159,9 +160,32 @@ class MealRecommendationService {
   static List<FoodItem>? _foodsCache;
   static List<Recipe>? _recipesCache;
 
+  // Global notifier to trigger UI updates across tabs when a meal is logged
+  static final ValueNotifier<int> mealUpdateNotifier = ValueNotifier<int>(0);
+
   // ─────────────────────────────────────────────────────────
-  // LOGGED MEALS
+  // LOGGED & RECENT MEALS
   // ─────────────────────────────────────────────────────────
+
+  static const String _recentFoodsKey = 'recent_shown_foods';
+
+  static Future<void> _recordShownFoods(List<String> foodIds) async {
+    final prefs = await SharedPreferences.getInstance();
+    final str = prefs.getString(_recentFoodsKey) ?? '[]';
+    List<String> recent = List<String>.from(jsonDecode(str));
+    recent.addAll(foodIds);
+    // Keep only the last 50 shown items to penalize
+    if (recent.length > 50) {
+      recent = recent.sublist(recent.length - 50);
+    }
+    await prefs.setString(_recentFoodsKey, jsonEncode(recent));
+  }
+
+  static Future<Set<String>> _getShownFoods() async {
+    final prefs = await SharedPreferences.getInstance();
+    final str = prefs.getString(_recentFoodsKey) ?? '[]';
+    return Set<String>.from(jsonDecode(str));
+  }
 
   static Future<void> logAcceptedMeal(String mealType, MealRecommendation rec) async {
     final prefs = await SharedPreferences.getInstance();
@@ -182,6 +206,9 @@ class MealRecommendationService {
     logged[mealType] = mealData;
     
     await prefs.setString(key, jsonEncode(logged));
+    
+    // Notify listeners globally that a meal was logged
+    mealUpdateNotifier.value++;
   }
 
   static Future<Map<String, Map<String, dynamic>>> getLoggedMeals() async {
@@ -229,6 +256,7 @@ class MealRecommendationService {
     required UserProfile profile,
     String? mealType,
     List<String> skipFoodIds = const [],
+    double? customDailyTarget,
   }) async {
     final foods = await _loadFoods();
     final recipes = await _loadRecipes();
@@ -237,7 +265,7 @@ class MealRecommendationService {
     final meal = mealType ?? getCurrentMealType();
 
     // 2. Calculate meal budget
-    final dailyTarget = await AdaptiveTdeeService.getPredictedDailyTarget(profile);
+    final dailyTarget = customDailyTarget ?? await AdaptiveTdeeService.getPredictedDailyTarget(profile);
     final distribution = getMealDistribution(profile.goal);
     final mealBudget = dailyTarget * (distribution[meal] ?? 0.30);
 
@@ -270,13 +298,21 @@ class MealRecommendationService {
     // 4 & 5. Score foods (heuristic scoring + RL preference weights)
     final prefWeights = await PreferenceLearningService.loadWeights();
     final mealPrefs = prefWeights[meal] ?? {};
+    final recentFoods = await _getShownFoods();
 
     final scored = <FoodItem, double>{};
     for (final food in candidates) {
       double score = _heuristicScore(food, meal, profile.goal, mealBudget);
-      // Apply RL preference weight
-      final prefWeight = mealPrefs[food.foodGroup] ?? 1.0;
-      score *= prefWeight;
+      // Apply RL preference weight (both group-level and food-level)
+      final groupWeight = mealPrefs[food.foodGroup] ?? 1.0;
+      final idWeight = mealPrefs['id_${food.id}'] ?? 1.0;
+      score *= (groupWeight * idWeight);
+      
+      // Diversity Penalty: Heavily penalize recently recommended foods
+      if (recentFoods.contains(food.id)) {
+        score *= 0.60;
+      }
+
       scored[food] = score;
     }
 
@@ -296,6 +332,9 @@ class MealRecommendationService {
     );
 
     final totalCal = selectedFoods.fold(0.0, (sum, f) => sum + f.portionCalories);
+
+    // Save selected foods to recently shown to penalize next time
+    await _recordShownFoods(selectedFoods.map((f) => f.food.id).toList());
 
     return MealRecommendation(
       mealType: meal,
@@ -354,8 +393,28 @@ class MealRecommendationService {
     // Factor 5: Fiber bonus (for weight loss)
     if (food.fiber > 3.0) score += 0.10;
 
-    // Add significant randomness to promote daily variety and exploration (epsilon noise)
-    score += Random().nextDouble() * 0.30;
+    // Factor 6: Universal Nutritional Guardrails
+    final fatCals = food.fat * 9;
+    final totalCals = max(food.calories, 1.0);
+
+    // Universal Sugar/Refined Carb Penalty
+    if (food.carbs > 25 && food.fiber < 1.0) {
+      score -= 0.40; // Heavy penalty for pure sugar/starch
+    }
+
+    // Universal Fat Density Penalty
+    if (fatCals > (totalCals * 0.50)) {
+      score -= 0.20; // Moderate penalty for extremely fat-heavy items
+    }
+
+    // Additional strictness for weight loss
+    if (goal == 'lose') {
+      if (fatCals > (totalCals * 0.35)) score -= 0.20;
+      if (food.carbs > 20 && food.fiber < 2.0) score -= 0.20;
+    }
+
+    // Add slight randomness to break ties (reduced from 0.30 to 0.05)
+    score += Random().nextDouble() * 0.05;
 
     return score;
   }
@@ -381,21 +440,40 @@ class MealRecommendationService {
     bool isBreakfast = mealType.toLowerCase() == 'breakfast';
 
     // Step A: Pick ONE Main Course
-    // A main course is either a Recipe (foodType == 'R') OR a core cereal (foodGroup == 'cereals')
     var mainCandidates = sortedFoods.where((e) {
       final f = e.key;
-      if (isBreakfast) {
-        if (f.name.toLowerCase().contains('soup') || 
-            f.foodGroup == 'sweets' || 
-            f.foodGroup == 'snacks') {
-          return false;
-        }
+      final name = f.name.toLowerCase();
+      
+      // Strict Main Course Nutritional Bans
+      if (f.foodGroup == 'sweets' || f.foodGroup == 'snacks' || f.foodGroup == 'beverages') {
+        return false;
       }
-      return f.foodType == 'R' || f.foodGroup == 'cereals';
+
+      if (isBreakfast && name.contains('soup')) {
+        return false;
+      }
+
+      bool isSideDish = name.contains('curry') || 
+                        name.contains('sambol') || 
+                        name.contains('mallum') || 
+                        name.contains('tempered') ||
+                        name.contains('gravy') ||
+                        name.contains('hodhi') ||
+                        name.contains('baduma');
+
+      // A Main Course must be a Recipe that is NOT a side dish, OR a base cereal.
+      return (f.foodType == 'R' && !isSideDish) || f.foodGroup == 'cereals';
     }).toList();
 
-    // Fallback if no main candidates found
-    if (mainCandidates.isEmpty) mainCandidates = sortedFoods;
+    // Fallback if no main candidates found (avoid returning sweets/snacks)
+    if (mainCandidates.isEmpty) {
+      mainCandidates = sortedFoods.where((e) {
+        final group = e.key.foodGroup;
+        return group != 'sweets' && group != 'snacks' && group != 'beverages';
+      }).toList();
+      // Absolute worst-case fallback
+      if (mainCandidates.isEmpty) mainCandidates = sortedFoods;
+    }
 
     final mainEntry = mainCandidates.first;
     final mainFood = mainEntry.key;
@@ -426,7 +504,13 @@ class MealRecommendationService {
     remainingCal -= mainCal;
 
     // Step B: Determine necessary sides based on Main Course macros
-    bool needsProtein = (mainFood.protein * 4) / max(mainFood.calories, 1) < 0.15;
+    // Target 20% of meal calories as protein, and at least 8g fiber
+    double targetProtein = (mealBudget * 0.20) / 4;
+    double targetFiber = 8.0;
+
+    double currentProtein = mainFood.protein * (mainGrams / 100);
+    double currentFiber = mainFood.fiber * (mainGrams / 100);
+
     bool hasVeg = false;
     bool hasBeverage = false;
 
@@ -460,16 +544,21 @@ class MealRecommendationService {
       if (isNameDuplicate) continue;
 
       // 2. ROLE ALLOCATION
+      bool needsProtein = currentProtein < targetProtein;
+      bool needsFiber = currentFiber < targetFiber;
+
       bool pick = false;
       if (needsProtein && food.foodGroup == 'protein') {
         pick = true;
-        needsProtein = false; // Fulfilled
+      } else if (needsFiber && !hasVeg && (food.foodGroup == 'vegetables' || food.foodGroup == 'legumes')) {
+        pick = true;
+        hasVeg = true;
       } else if (!hasVeg && (food.foodGroup == 'vegetables' || food.foodGroup == 'condiments')) {
         pick = true;
-        hasVeg = true; // Fulfilled
+        hasVeg = true;
       } else if (!hasBeverage && (food.foodGroup == 'beverages' || food.foodGroup == 'dairy' || food.foodGroup == 'milk')) {
         pick = true;
-        hasBeverage = true; // Fulfilled
+        hasBeverage = true;
       } else if (!needsProtein && food.foodGroup == 'fruits') {
         pick = true;
       } else if (!needsProtein && food.foodGroup == 'protein') {
@@ -503,9 +592,70 @@ class MealRecommendationService {
       ));
 
       remainingCal -= portionCal;
+      currentProtein += food.protein * (portionGrams / 100);
+      currentFiber += food.fiber * (portionGrams / 100);
     }
 
     return selected;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // SMART SWAP OPTIMIZATION
+  // ─────────────────────────────────────────────────────────
+
+  /// Get 3 mathematically sound alternatives for a given food.
+  static Future<List<FoodItem>> getAlternatives(FoodItem targetFood, UserProfile profile, String mealType) async {
+    final foods = await _loadFoods();
+    final blocked = await PreferenceLearningService.getBlockedFoods();
+
+    final candidates = foods.where((f) {
+      if (f.id == targetFood.id) return false;
+      if (!f.recommendable) return false;
+      if (!f.mealTypes.contains(mealType)) return false;
+      if (f.foodGroup != targetFood.foodGroup) return false; // Must fill the same role
+      if (blocked.contains(f.name)) return false;
+      if (profile.dietaryPreference == 'vegetarian' && !f.dietaryTags.contains('vegetarian')) return false;
+      
+      // Strict nutritional guardrails for weight loss
+      if (profile.goal == 'lose') {
+        // Prevent extremely high fat density (fat calories > 40% of total)
+        if (f.calories > 0 && (f.fat * 9) > (f.calories * 0.40)) return false;
+        
+        // Prevent high sugar/low fiber density items (sugar spikes)
+        if (f.carbs > 30 && f.fiber < 1.0) return false;
+      }
+      
+      return true;
+    }).toList();
+
+    // Sort by calorie proximity to target food (most similar caloric density)
+    candidates.sort((a, b) => (a.calories - targetFood.calories).abs().compareTo((b.calories - targetFood.calories).abs()));
+    
+    return candidates.take(3).toList();
+  }
+
+  /// The Linear Scaling Portion Solver.
+  /// Dynamically calculates the exact grams of a new food needed to fill a specific caloric gap.
+  static RecommendedFood solvePortion(FoodItem newFood, double targetCaloriesToFill, String mealType) {
+    var portion = newFood.bestPortion;
+    var originalGrams = (portion['grams'] ?? 100.0).toDouble();
+    var baseCal = (portion['calories'] ?? newFood.calories).toDouble();
+    
+    if (baseCal <= 0) baseCal = 1.0; // Prevent divide by zero
+    
+    final scale = targetCaloriesToFill / baseCal;
+    final portionGrams = originalGrams * scale;
+    final portionCal = baseCal * scale;
+    
+    return RecommendedFood(
+      food: newFood,
+      portionGrams: portionGrams,
+      portionAmount: portionGrams / (originalGrams > 0 ? originalGrams : 100.0),
+      portionUnit: portion['unit'] ?? '100g',
+      portionCalories: portionCal,
+      score: 1.0, // Custom pick, bypass heuristic
+      explanation: 'User custom selection.',
+    );
   }
 
   // ─────────────────────────────────────────────────────────
@@ -609,12 +759,15 @@ class MealRecommendationService {
   /// Generate recommendations for all meals of the day.
   static Future<Map<String, MealRecommendation>> recommendDailyMeals({
     required UserProfile profile,
+    double? customDailyTarget,
   }) async {
     final results = <String, MealRecommendation>{};
+    final dailyTarget = customDailyTarget ?? await AdaptiveTdeeService.getPredictedDailyTarget(profile);
     for (final meal in ['breakfast', 'lunch', 'dinner', 'snack']) {
       results[meal] = await recommendMeal(
         profile: profile,
         mealType: meal,
+        customDailyTarget: dailyTarget,
       );
     }
     return results;
