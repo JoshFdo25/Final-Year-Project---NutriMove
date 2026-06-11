@@ -79,9 +79,11 @@ class PreferenceLearningService {
   /// Get the preference multiplier for a food in a given context.
   /// Returns a value around 1.0 (higher = more preferred).
   static Future<double> getPreferenceScore(
-      String foodGroup, String mealType) async {
+      String foodId, String foodGroup, String mealType) async {
     final weights = await loadWeights();
-    return weights[mealType]?[foodGroup] ?? 1.0;
+    final groupWeight = weights[mealType]?[foodGroup] ?? 1.0;
+    final idWeight = weights[mealType]?['id_$foodId'] ?? 1.0;
+    return groupWeight * idWeight;
   }
 
   /// Record user feedback and update weights.
@@ -89,60 +91,50 @@ class PreferenceLearningService {
     required FeedbackType type,
     required String mealType,
     required List<String> foodGroups,
+    required List<String> foodIds,
     double? rating, // Only used for FeedbackType.rate
     String? swappedFoodGroup, // The food that was chosen as replacement
+    String? swappedFoodId,
   }) async {
     final weights = await loadWeights();
     final mealWeights = weights[mealType] ?? {};
 
+    // Helper to apply updates
+    void updateKeys(List<String> keys, double delta) {
+      for (final key in keys) {
+        mealWeights[key] = _clamp((mealWeights[key] ?? 1.0) + _learningRate * delta);
+      }
+    }
+
+    final allKeys = [...foodGroups, ...foodIds.map((id) => 'id_$id')];
+
     switch (type) {
       case FeedbackType.accept:
-        for (final fg in foodGroups) {
-          mealWeights[fg] = _clamp(
-            (mealWeights[fg] ?? 1.0) + _learningRate * 1.0,
-          );
-        }
+        updateKeys(allKeys, 1.0);
         break;
 
       case FeedbackType.swap:
-        // Negative signal for all original items
-        for (final fg in foodGroups) {
-          mealWeights[fg] = _clamp(
-            (mealWeights[fg] ?? 1.0) + _learningRate * -0.3,
-          );
-        }
-        // Positive signal for the chosen replacement
-        if (swappedFoodGroup != null) {
-          mealWeights[swappedFoodGroup] = _clamp(
-            (mealWeights[swappedFoodGroup] ?? 1.0) + _learningRate * 0.5,
-          );
-        }
+        // Negative signal for the rejected item
+        updateKeys(allKeys, -0.3);
+        // Aggressive positive signal for the user's explicit custom choice
+        final swappedKeys = <String>[];
+        if (swappedFoodGroup != null) swappedKeys.add(swappedFoodGroup);
+        if (swappedFoodId != null) swappedKeys.add('id_$swappedFoodId');
+        updateKeys(swappedKeys, 2.0);
         break;
 
       case FeedbackType.skip:
-        for (final fg in foodGroups) {
-          mealWeights[fg] = _clamp(
-            (mealWeights[fg] ?? 1.0) + _learningRate * -0.5,
-          );
-        }
+        updateKeys(allKeys, -0.5);
         break;
 
       case FeedbackType.block:
-        for (final fg in foodGroups) {
-          mealWeights[fg] = _clamp(
-            (mealWeights[fg] ?? 1.0) + _learningRate * -2.0,
-          );
-        }
+        updateKeys(allKeys, -2.0);
         break;
 
       case FeedbackType.rate:
         if (rating != null) {
           final signal = (rating - 3) / 2; // 1→-1, 3→0, 5→1
-          for (final fg in foodGroups) {
-            mealWeights[fg] = _clamp(
-              (mealWeights[fg] ?? 1.0) + _learningRate * signal,
-            );
-          }
+          updateKeys(allKeys, signal);
         }
         break;
     }
