@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'dart:ui';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../firebase_options.dart';
 
 /// Initializes the background service but does NOT start it.
 Future<void> initializeTrackingService() async {
@@ -38,7 +41,7 @@ Future<void> initializeTrackingService() async {
       initialNotificationTitle: 'Diet Planner',
       initialNotificationContent: 'Initializing AI tracker...',
       foregroundServiceNotificationId: 888,
-      foregroundServiceTypes: [AndroidForegroundType.location, AndroidForegroundType.specialUse],
+      foregroundServiceTypes: [AndroidForegroundType.specialUse],
     ),
     iosConfiguration: IosConfiguration(
       autoStart: false,
@@ -57,6 +60,17 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
 
+  // Initialize Firebase in this background isolate to check auth state
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // If the user is logged out (e.g., phone rebooted after logout), stop the service immediately
+  if (FirebaseAuth.instance.currentUser == null) {
+    service.stopSelf();
+    return;
+  }
+
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -73,7 +87,6 @@ void onStart(ServiceInstance service) async {
   String currentActivity = "Waiting for data...";
   double userWeight = 70.0; // Overwritten by setWeight
   double confidence = 0.0;
-  double currentSpeedMph = 0.0;
 
   // Persistence block
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -99,7 +112,9 @@ void onStart(ServiceInstance service) async {
            activitySeconds[key] = (value as num).toInt();
         }
       });
-    } catch(e) {}
+    } catch(e) {
+      debugPrint("Error loading activity seconds: $e");
+    }
   }
 
   String calString = prefs.getString('${todayKey}_activity_cals') ?? "{}";
@@ -111,7 +126,9 @@ void onStart(ServiceInstance service) async {
            activityCaloriesBurned[key] = (value as num).toDouble();
         }
       });
-    } catch(e) {}
+    } catch(e) {
+      debugPrint("Error loading activity calories: $e");
+    }
   }
 
   // AI State
@@ -119,9 +136,9 @@ void onStart(ServiceInstance service) async {
   
   try {
     interpreter = await Interpreter.fromAsset('assets/models/har_phone_model.tflite');
-    print("TFLite Model Loaded Successfully inside Isolate!");
+    debugPrint("TFLite Model Loaded Successfully inside Isolate!");
   } catch (e) {
-    print("Error loading TFLite model: $e");
+    debugPrint("Error loading TFLite model: $e");
   }
 
   // Listen to UI messages
@@ -196,33 +213,11 @@ void onStart(ServiceInstance service) async {
   });
 
   // ==========================================
-  // GPS GEOLOCATOR STREAM
-  // ==========================================
-  Geolocator.getPositionStream(
-    locationSettings: const LocationSettings(
-      accuracy: LocationAccuracy.best,
-      distanceFilter: 2,
-    ),
-  ).listen((Position position) {
-    // Convert m/s to mph
-    currentSpeedMph = position.speed * 2.23694;
-  });
-
-  // ==========================================
   // MET CALORIE ENGINE
   // ==========================================
-  double getMetValue(String act, double speed) {
-    // Phase 2 Dynamic Scaling Logic!
-    if (act == "Walking") {
-      if (speed <= 2.0) return 2.8;
-      if (speed >= 4.0) return 5.0;
-      return 2.8 + ((speed - 2.0) / 2.0) * (5.0 - 2.8);
-    }
-    if (act == "Jogging") {
-      if (speed <= 4.0) return 6.0;
-      if (speed >= 8.0) return 11.8;
-      return 6.0 + ((speed - 4.0) / 4.0) * (11.8 - 6.0);
-    }
+  double getMetValue(String act) {
+    if (act == "Walking") return 3.5;
+    if (act == "Jogging") return 7.0;
     if (act == "Stairs") return 4.0;
     if (act == "Sitting") return 1.3;
     if (act == "Standing") return 1.8;
@@ -261,7 +256,7 @@ void onStart(ServiceInstance service) async {
         }
         
         // 2. Real Math
-        double liveMet = getMetValue(currentActivity, currentSpeedMph);
+        double liveMet = getMetValue(currentActivity);
         double calsBurnedNow = (liveMet * userWeight) / 3600.0;
         totalCalories += calsBurnedNow; // Per second burn
         
