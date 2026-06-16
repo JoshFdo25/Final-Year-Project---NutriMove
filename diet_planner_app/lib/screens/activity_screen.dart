@@ -84,8 +84,12 @@ class _ActivityScreenState extends State<ActivityScreen>
               end: Alignment.bottomCenter,
               colors: [
                 Theme.of(context).scaffoldBackgroundColor,
-                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
-                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.0),
+                Theme.of(
+                  context,
+                ).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                Theme.of(
+                  context,
+                ).scaffoldBackgroundColor.withValues(alpha: 0.0),
               ],
               stops: const [0.0, 0.6, 1.0],
             ),

@@ -28,7 +28,10 @@ class EnergyService {
   /// Formula: Calories = MET × Weight(kg) × Duration(hours)
   static double calculateCaloriesBurned(
       double met, double weightKg, double durationMinutes) {
-    return met * weightKg * (durationMinutes / 60.0);
+    // Use Net MET (met - 1.0) because BMR already covers the base 1.0 MET 24/7.
+    // If we don't subtract 1.0, we double-count the calories burned just by being alive.
+    double netMet = (met > 1.0) ? (met - 1.0) : 0.0;
+    return netMet * weightKg * (durationMinutes / 60.0);
   }
 
   /// Calculate total calories from activity durations.
@@ -96,29 +99,33 @@ class EnergyService {
   static Map<String, double> calculateMacroTargets(
       double dailyCalories, UserProfile profile) {
     double proteinPerKg;
-    double carbPct;
     double fatPct;
 
     switch (profile.goal) {
       case 'lose':
-        proteinPerKg = 1.2;
-        carbPct = 0.45;
-        fatPct = 0.30;
+        proteinPerKg = 1.6; // Higher protein to preserve muscle on deficit
+        fatPct = 0.30; // 30% fat
         break;
       case 'gain':
-        proteinPerKg = 1.0;
-        carbPct = 0.55;
-        fatPct = 0.25;
+        proteinPerKg = 1.6; // Higher protein for muscle synthesis
+        fatPct = 0.25; // 25% fat
         break;
       default: // maintain
-        proteinPerKg = 0.9;
-        carbPct = 0.50;
-        fatPct = 0.28;
+        proteinPerKg = 1.2; // Standard active maintenance
+        fatPct = 0.30; // 30% fat
     }
 
+    // 1. Calculate Protein strictly based on body weight
     final proteinG = profile.weightKg * proteinPerKg;
-    final carbsG = (dailyCalories * carbPct) / 4; // 4 cal/g
-    final fatG = (dailyCalories * fatPct) / 9; // 9 cal/g
+    final proteinCalories = proteinG * 4.0;
+
+    // 2. Calculate Fat as a percentage of total daily calories
+    final fatCalories = dailyCalories * fatPct;
+    final fatG = fatCalories / 9.0;
+
+    // 3. Allocate all remaining calories to Carbohydrates to balance to 100%
+    final remainingCalories = dailyCalories - proteinCalories - fatCalories;
+    final carbsG = remainingCalories > 0 ? (remainingCalories / 4.0) : 0.0;
 
     return {
       'proteinG': proteinG,

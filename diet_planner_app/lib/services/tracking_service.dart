@@ -21,7 +21,7 @@ Future<void> initializeTrackingService() async {
     'diet_planner_tracker', // id
     'Activity Tracking', // title
     description: 'This channel is used for continuous activity tracking.',
-    importance: Importance.low, 
+    importance: Importance.low,
   );
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -29,7 +29,8 @@ Future<void> initializeTrackingService() async {
 
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
+        AndroidFlutterLocalNotificationsPlugin
+      >()
       ?.createNotificationChannel(channel);
 
   await service.configure(
@@ -61,9 +62,7 @@ void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
 
   // Initialize Firebase in this background isolate to check auth state
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // If the user is logged out (e.g., phone rebooted after logout), stop the service immediately
   if (FirebaseAuth.instance.currentUser == null) {
@@ -78,7 +77,8 @@ void onStart(ServiceInstance service) async {
   // STATE & BUFFERS
   // ==========================================
   List<List<double>> sensorBuffer = [];
-  
+  List<String> predictionHistory = []; // For Temporal Smoothing
+
   // Idle Mode Tracking Buffers
   List<double> xBuffer = [];
   List<double> yBuffer = [];
@@ -90,29 +90,38 @@ void onStart(ServiceInstance service) async {
 
   // Persistence block
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String todayKey = "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
-  
-  double totalCalories = prefs.getDouble('${todayKey}_calories') ?? 0.0; 
+  String todayKey =
+      "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+
+  double totalCalories = prefs.getDouble('${todayKey}_calories') ?? 0.0;
   int elapsedSeconds = prefs.getInt('${todayKey}_seconds') ?? 0;
-  
+
   Map<String, int> activitySeconds = {
-    'Walking': 0, 'Jogging': 0, 'Stairs': 0, 'Sitting': 0, 'Standing': 0
+    'Walking': 0,
+    'Jogging': 0,
+    'Stairs': 0,
+    'Sitting': 0,
+    'Standing': 0,
   };
-  
+
   Map<String, double> activityCaloriesBurned = {
-    'Walking': 0.0, 'Jogging': 0.0, 'Stairs': 0.0, 'Sitting': 0.0, 'Standing': 0.0
+    'Walking': 0.0,
+    'Jogging': 0.0,
+    'Stairs': 0.0,
+    'Sitting': 0.0,
+    'Standing': 0.0,
   };
-  
+
   String mapString = prefs.getString('${todayKey}_durations') ?? "{}";
   if (mapString != "{}") {
     try {
       Map<String, dynamic> decoded = jsonDecode(mapString);
       decoded.forEach((key, value) {
         if (activitySeconds.containsKey(key)) {
-           activitySeconds[key] = (value as num).toInt();
+          activitySeconds[key] = (value as num).toInt();
         }
       });
-    } catch(e) {
+    } catch (e) {
       debugPrint("Error loading activity seconds: $e");
     }
   }
@@ -123,19 +132,21 @@ void onStart(ServiceInstance service) async {
       Map<String, dynamic> decoded = jsonDecode(calString);
       decoded.forEach((key, value) {
         if (activityCaloriesBurned.containsKey(key)) {
-           activityCaloriesBurned[key] = (value as num).toDouble();
+          activityCaloriesBurned[key] = (value as num).toDouble();
         }
       });
-    } catch(e) {
+    } catch (e) {
       debugPrint("Error loading activity calories: $e");
     }
   }
 
   // AI State
   Interpreter? interpreter;
-  
+
   try {
-    interpreter = await Interpreter.fromAsset('assets/models/har_phone_model.tflite');
+    interpreter = await Interpreter.fromAsset(
+      'assets/models/har_phone_model_quantized_int8.tflite',
+    );
     debugPrint("TFLite Model Loaded Successfully inside Isolate!");
   } catch (e) {
     debugPrint("Error loading TFLite model: $e");
@@ -148,7 +159,7 @@ void onStart(ServiceInstance service) async {
         userWeight = (event['weight'] as num).toDouble();
       }
     });
-    
+
     service.on('setAsForeground').listen((event) {
       service.setAsForegroundService();
     });
@@ -165,8 +176,12 @@ void onStart(ServiceInstance service) async {
   // ==========================================
   double ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0;
 
-  accelerometerEventStream(samplingPeriod: const Duration(milliseconds: 50)).listen((event) {
-    ax = event.x; ay = event.y; az = event.z;
+  accelerometerEventStream(
+    samplingPeriod: const Duration(milliseconds: 50),
+  ).listen((event) {
+    ax = event.x;
+    ay = event.y;
+    az = event.z;
     // Fast variance check for Idle Mode (300 frames = 15 seconds)
     xBuffer.add(ax);
     yBuffer.add(ay);
@@ -175,39 +190,50 @@ void onStart(ServiceInstance service) async {
       xBuffer.removeAt(0);
       yBuffer.removeAt(0);
       zBuffer.removeAt(0);
-      
+
       double meanX = xBuffer.reduce((a, b) => a + b) / xBuffer.length;
       double meanY = yBuffer.reduce((a, b) => a + b) / yBuffer.length;
       double meanZ = zBuffer.reduce((a, b) => a + b) / zBuffer.length;
-      
-      double varX = xBuffer.map((x) => pow(x - meanX, 2)).reduce((a, b) => a + b) / xBuffer.length;
-      double varY = yBuffer.map((y) => pow(y - meanY, 2)).reduce((a, b) => a + b) / yBuffer.length;
-      double varZ = zBuffer.map((z) => pow(z - meanZ, 2)).reduce((a, b) => a + b) / zBuffer.length;
-      
+
+      double varX =
+          xBuffer.map((x) => pow(x - meanX, 2)).reduce((a, b) => a + b) /
+          xBuffer.length;
+      double varY =
+          yBuffer.map((y) => pow(y - meanY, 2)).reduce((a, b) => a + b) /
+          yBuffer.length;
+      double varZ =
+          zBuffer.map((z) => pow(z - meanZ, 2)).reduce((a, b) => a + b) /
+          zBuffer.length;
+
       // Horizontal flat check: High gravity on Z axis (+/- 8.0), low gravity on X/Y axes
-      bool isHorizontal = (meanZ.abs() > 8.0) && (meanX.abs() < 3.0) && (meanY.abs() < 3.0);
-      
-      // Human microum-scale vibration isolation (Table vs Pocket threshold based on self collected CSV dataset)
-      bool mechanicallyStatic = varX < 0.005 && varY < 0.005 && varZ < 0.005;
-      
+      bool isHorizontal =
+          (meanZ.abs() > 8.0) && (meanX.abs() < 3.0) && (meanY.abs() < 3.0);
+
+      // Human micro-scale vibration isolation (Lowered to 0.0015 to strictly detect tables, not humans sitting very still)
+      bool mechanicallyStatic = varX < 0.0015 && varY < 0.0015 && varZ < 0.0015;
+
       isIdle = mechanicallyStatic && isHorizontal;
     }
   });
-  
-  gyroscopeEventStream(samplingPeriod: const Duration(milliseconds: 50)).listen((event) {
-    gx = event.x; gy = event.y; gz = event.z;
-  });
+
+  gyroscopeEventStream(samplingPeriod: const Duration(milliseconds: 50)).listen(
+    (event) {
+      gx = event.x;
+      gy = event.y;
+      gz = event.z;
+    },
+  );
 
   // Hard 50ms Sync Timer (20Hz)
   Timer.periodic(const Duration(milliseconds: 50), (timer) {
     if (isIdle) {
       sensorBuffer.clear(); // Drop buffer if stationary
-      return; 
+      return;
     }
-    
+
     // Stack [ax, ay, az, gx, gy, gz]
     sensorBuffer.add([ax, ay, az, gx, gy, gz]);
-    if (sensorBuffer.length > 200) {
+    if (sensorBuffer.length > 100) {
       sensorBuffer.removeAt(0);
     }
   });
@@ -229,61 +255,100 @@ void onStart(ServiceInstance service) async {
   // ==========================================
   Timer.periodic(const Duration(seconds: 1), (timer) async {
     if (!isIdle) {
-        elapsedSeconds++;
-        
-        // 1. Run inference every second if we have a full buffer (10 sec of data)
-        if (sensorBuffer.length == 200 && interpreter != null) {
-          var input = [sensorBuffer]; // Shape: [1, 200, 6]
-          var output = List.filled(1 * 5, 0.0).reshape([1, 5]); // 5 activity classes
-          
-          interpreter.run(input, output);
-          
-          List<double> predictions = List<double>.from(output[0]);
-          double maxScore = -1.0;
-          int maxIndex = -1;
-          for (int i = 0; i < predictions.length; i++) {
-            if (predictions[i] > maxScore) {
-              maxScore = predictions[i];
-              maxIndex = i;
+      elapsedSeconds++;
+
+      // 1. Run inference every second if we have a full buffer (5 sec of data)
+      if (sensorBuffer.length == 100 && interpreter != null) {
+        var input = [sensorBuffer]; // Shape: [1, 100, 6]
+        var output = List.filled(
+          1 * 5,
+          0.0,
+        ).reshape([1, 5]); // 5 activity classes
+
+        interpreter.run(input, output);
+
+        List<double> predictions = List<double>.from(output[0]);
+        double maxScore = -1.0;
+        int maxIndex = -1;
+        for (int i = 0; i < predictions.length; i++) {
+          if (predictions[i] > maxScore) {
+            maxScore = predictions[i];
+            maxIndex = i;
+          }
+        }
+
+        List<String> classes = [
+          "Walking",
+          "Jogging",
+          "Stairs",
+          "Sitting",
+          "Standing",
+        ];
+        if (maxIndex != -1) {
+          String rawPrediction = classes[maxIndex];
+          confidence = maxScore;
+
+          // Temporal Smoothing (Majority Voting over last 5 predictions)
+          predictionHistory.add(rawPrediction);
+          if (predictionHistory.length > 5) {
+            predictionHistory.removeAt(0);
+          }
+
+          Map<String, int> counts = {};
+          for (String p in predictionHistory) {
+            counts[p] = (counts[p] ?? 0) + 1;
+          }
+
+          String smoothedPrediction = rawPrediction;
+          int maxCount = 0;
+          counts.forEach((key, value) {
+            if (value > maxCount) {
+              maxCount = value;
+              smoothedPrediction = key;
             }
-          }
-          
-          List<String> classes = ["Walking", "Jogging", "Stairs", "Sitting", "Standing"];
-          if (maxIndex != -1) {
-             currentActivity = classes[maxIndex];
-             confidence = maxScore;
-          }
+          });
+
+          currentActivity = smoothedPrediction;
         }
-        
-        // 2. Real Math
-        double liveMet = getMetValue(currentActivity);
-        double calsBurnedNow = (liveMet * userWeight) / 3600.0;
-        totalCalories += calsBurnedNow; // Per second burn
-        
-        if (activitySeconds.containsKey(currentActivity)) {
-           activitySeconds[currentActivity] = activitySeconds[currentActivity]! + 1;
-           activityCaloriesBurned[currentActivity] = activityCaloriesBurned[currentActivity]! + calsBurnedNow;
-        }
-        
-        // 3. Routine Caching (save state every 10 active seconds to avoid IO bottleneck)
-        if (elapsedSeconds % 10 == 0) {
-           prefs.setDouble('${todayKey}_calories', totalCalories);
-           prefs.setInt('${todayKey}_seconds', elapsedSeconds);
-           prefs.setString('${todayKey}_durations', jsonEncode(activitySeconds));
-           prefs.setString('${todayKey}_activity_cals', jsonEncode(activityCaloriesBurned));
-        }
+      } else if (currentActivity == "Idle (Sleeping)" ||
+          currentActivity == "Waiting for data...") {
+        currentActivity = "Analyzing...";
+      }
+
+      // 2. Real Math
+      double liveMet = getMetValue(currentActivity);
+      double calsBurnedNow = (liveMet * userWeight) / 3600.0;
+      totalCalories += calsBurnedNow; // Per second burn
+
+      if (activitySeconds.containsKey(currentActivity)) {
+        activitySeconds[currentActivity] =
+            activitySeconds[currentActivity]! + 1;
+        activityCaloriesBurned[currentActivity] =
+            activityCaloriesBurned[currentActivity]! + calsBurnedNow;
+      }
+
+      // 3. Routine Caching (save state every 10 active seconds to avoid IO bottleneck)
+      if (elapsedSeconds % 10 == 0) {
+        prefs.setDouble('${todayKey}_calories', totalCalories);
+        prefs.setInt('${todayKey}_seconds', elapsedSeconds);
+        prefs.setString('${todayKey}_durations', jsonEncode(activitySeconds));
+        prefs.setString(
+          '${todayKey}_activity_cals',
+          jsonEncode(activityCaloriesBurned),
+        );
+      }
     } else {
-        currentActivity = "Idle (Sleeping)";
-        confidence = 1.0;
+      currentActivity = "Idle (Sleeping)";
+      confidence = 1.0;
     }
 
     // Update Android Notification
     if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
-        String msg = isIdle 
-            ? "Battery Saver: Phone is idle on a surface." 
+        String msg = isIdle
+            ? "Battery Saver: Phone is idle on a surface."
             : "Calories Burned: ${totalCalories.toStringAsFixed(1)} kcal | $currentActivity";
-        
+
         flutterLocalNotificationsPlugin.show(
           id: 888,
           title: 'Diet Planner',
@@ -310,7 +375,8 @@ void onStart(ServiceInstance service) async {
       'calories': totalCalories,
       'confidence': confidence,
       'activityDurations': activitySeconds, // Passing completely synched map!
-      'activityCaloriesMap': activityCaloriesBurned, // Passing Dynamic GPS calculations!
+      'activityCaloriesMap':
+          activityCaloriesBurned, // Passing Dynamic GPS calculations!
     });
   });
 }

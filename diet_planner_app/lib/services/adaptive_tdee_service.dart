@@ -15,9 +15,9 @@ import '../utils/constants.dart';
 import 'energy_service.dart';
 
 class AdaptiveTdeeService {
-  /// Key format for storing daily calorie burn: "burn_2026-04-04"
+  /// Key format for storing daily calorie burn: "2026-6-11_calories"
   static String _dateKey(DateTime date) =>
-      'burn_${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      '${date.year}-${date.month}-${date.day}_calories';
 
   /// Store today's actual calorie burn (called at end of day or on app resume).
   static Future<void> recordDailyBurn(double calories) async {

@@ -37,7 +37,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
   @override
   void dispose() {
-    MealRecommendationService.mealUpdateNotifier.removeListener(_loadLoggedMeals);
+    MealRecommendationService.mealUpdateNotifier.removeListener(
+      _loadLoggedMeals,
+    );
     super.dispose();
   }
 
@@ -66,7 +68,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
     }
 
     final adaptiveTarget = dailyTarget + activityCalories;
-    final remaining = (adaptiveTarget - customTotalConsumed).clamp(0, double.infinity).toDouble(); 
+    final remaining = (adaptiveTarget - customTotalConsumed)
+        .clamp(0, double.infinity)
+        .toDouble();
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -83,8 +87,12 @@ class _SummaryScreenState extends State<SummaryScreen> {
               end: Alignment.bottomCenter,
               colors: [
                 Theme.of(context).scaffoldBackgroundColor,
-                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
-                Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.0),
+                Theme.of(
+                  context,
+                ).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                Theme.of(
+                  context,
+                ).scaffoldBackgroundColor.withValues(alpha: 0.0),
               ],
               stops: const [0.0, 0.6, 1.0],
             ),
@@ -109,35 +117,38 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   children: [
                     Text(
                       'Today\'s Overview',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildCircleStat(
-                            context,
-                            bmr.toStringAsFixed(0),
-                            'BMR',
-                            Colors.purple),
+                          context,
+                          bmr.toStringAsFixed(0),
+                          'BMR',
+                          Colors.purple,
+                        ),
                         _buildCircleStat(
-                            context,
-                            activityCalories.toStringAsFixed(0),
-                            'Burned',
-                            Colors.red),
+                          context,
+                          activityCalories.toStringAsFixed(0),
+                          'Burned',
+                          Colors.red,
+                        ),
                         _buildCircleStat(
-                            context,
-                            customTotalConsumed.toStringAsFixed(0),
-                            'Eaten',
-                            Colors.orange),
+                          context,
+                          customTotalConsumed.toStringAsFixed(0),
+                          'Eaten',
+                          Colors.orange,
+                        ),
                         _buildCircleStat(
-                            context,
-                            remaining.toStringAsFixed(0),
-                            'Left',
-                            Colors.green),
+                          context,
+                          remaining.toStringAsFixed(0),
+                          'Left',
+                          Colors.green,
+                        ),
                       ],
                     ),
                   ],
@@ -154,118 +165,131 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   width: double.infinity,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.directions_run, color: Colors.blue, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Activity Breakdown',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    ...tracking.activityDurationsMinutes.entries.where((e) => e.value > 0).map((entry) {
-                      final actName = entry.key;
-                      final min = entry.value;
-                      final cal = tracking.activityCalories[actName] ?? 0.0;
-                      // Dynamic GPS MET Formula: Cal = MET * Weight * H
-                      // Therefore: MET = Cal / Weight / H
-                      final hours = min > 0 ? (min / 60.0) : 0.001; // protect zero div
-                      final dynamicMet = cal / profile.weightKg / hours;
-                      
-                      final totalMin = tracking.activityDurationsMinutes.values
-                          .fold(0.0, (a, b) => a + b);
-                      final pct = entry.value / totalMin;
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.directions_run,
+                            color: Colors.blue,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Activity Breakdown',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ...tracking.activityDurationsMinutes.entries
+                          .where((e) => e.value > 0)
+                          .map((entry) {
+                            final actName = entry.key;
+                            final min = entry.value;
+                            final cal =
+                                tracking.activityCalories[actName] ?? 0.0;
+                            // We now store Net Calories.
+                            // NetCal = (MET - 1.0) * Weight * H
+                            // Therefore Gross MET = (NetCal / Weight / H) + 1.0
+                            final hours = min > 0
+                                ? (min / 60.0)
+                                : 0.001; // protect zero div
+                            final dynamicMet =
+                                (cal / profile.weightKg / hours) + 1.0;
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: _getColor(entry.key)
-                                    .withValues(alpha: 0.2),
-                                borderRadius:
-                                    BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                _getIcon(entry.key),
-                                color: _getColor(entry.key),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                            final totalMin = tracking
+                                .activityDurationsMinutes
+                                .values
+                                .fold(0.0, (a, b) => a + b);
+                            final pct = entry.value / totalMin;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Row(
                                 children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment
-                                            .spaceBetween,
-                                    children: [
-                                      Text(
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: _getColor(
                                         entry.key,
-                                        style: const TextStyle(
-                                            fontWeight:
-                                                FontWeight.w600),
-                                      ),
-                                      Text(
-                                        '${(cal).toStringAsFixed(0)} kcal',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: _getColor(entry.key),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${entry.value.toStringAsFixed(0)} min • MET ${dynamicMet.toStringAsFixed(1)} (GPS Live)',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade600,
+                                      ).withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      _getIcon(entry.key),
+                                      color: _getColor(entry.key),
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
-                                  ClipRRect(
-                                    borderRadius:
-                                        BorderRadius.circular(4),
-                                    child: LinearProgressIndicator(
-                                      value: pct,
-                                      minHeight: 6,
-                                      backgroundColor:
-                                          _getColor(entry.key)
-                                              .withValues(alpha: 0.15),
-                                      valueColor:
-                                          AlwaysStoppedAnimation(
-                                        _getColor(entry.key),
-                                      ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              entry.key,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${(cal).toStringAsFixed(0)} kcal',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: _getColor(entry.key),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${entry.value.toStringAsFixed(0)} min • MET ${dynamicMet.toStringAsFixed(1)}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          child: LinearProgressIndicator(
+                                            value: pct,
+                                            minHeight: 6,
+                                            backgroundColor: _getColor(
+                                              entry.key,
+                                            ).withValues(alpha: 0.15),
+                                            valueColor: AlwaysStoppedAnimation(
+                                              _getColor(entry.key),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
+                            );
+                          }),
+                      if (tracking.activityDurationsMinutes.values
+                          .where((v) => v > 0)
+                          .isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            'No activity tracked yet today.',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
                         ),
-                      );
-                    }),
-                    if (tracking.activityDurationsMinutes.values.where((v) => v > 0).isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'No activity tracked yet today.',
-                          style: TextStyle(color: Colors.grey.shade600),
-                        ),
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -280,40 +304,52 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.flash_on, color: Colors.amber, size: 20),
+                        const Icon(
+                          Icons.flash_on,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Energy Calculation',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     _buildCalcRow('BMR (Resting)', bmr, Colors.purple),
-                    _buildCalcRow('+ Activity Burn',
-                        activityCalories, Colors.red),
+                    _buildCalcRow(
+                      '+ Activity Burn',
+                      activityCalories,
+                      Colors.red,
+                    ),
                     const Divider(),
-                    _buildCalcRow('= Total Expenditure',
-                        bmr + activityCalories, Colors.blue),
+                    _buildCalcRow(
+                      '= Total Expenditure',
+                      bmr + activityCalories,
+                      Colors.blue,
+                    ),
                     _buildCalcRow(
                       profile.goal == 'lose'
                           ? '- Goal Deficit'
                           : profile.goal == 'gain'
-                              ? '+ Goal Surplus'
-                              : 'Goal Adjustment',
+                          ? '+ Goal Surplus'
+                          : 'Goal Adjustment',
                       profile.goal == 'lose'
                           ? -500
                           : profile.goal == 'gain'
-                              ? 300
-                              : 0,
+                          ? 300
+                          : 0,
                       Colors.grey,
                     ),
                     const Divider(thickness: 2),
                     _buildCalcRow(
-                        '= Daily Target', dailyTarget, Colors.green,
-                        bold: true),
+                      '= Daily Target',
+                      dailyTarget,
+                      Colors.green,
+                      bold: true,
+                    ),
                   ],
                 ),
               ),
@@ -322,7 +358,9 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
             // ─── Explanation Card (XAI) ────────────
             Card(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.08),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -330,8 +368,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.lightbulb,
-                            color: Colors.amber.shade700, size: 20),
+                        Icon(
+                          Icons.lightbulb,
+                          color: Colors.amber.shade700,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'AI Insight',
@@ -346,10 +387,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
                     Text(
                       activityCalories > 200
                           ? 'You burned ${activityCalories.toStringAsFixed(0)} kcal from exercise today! '
-                              'Your 20-minute jog was the biggest calorie burner. '
-                              'Consider a protein-rich dinner to support muscle recovery.'
+                                'Your 20-minute jog was the biggest calorie burner. '
+                                'Consider a protein-rich dinner to support muscle recovery.'
                           : 'Low activity detected today. Consider lighter meals '
-                              'with more vegetables and fiber to stay within your target.',
+                                'with more vegetables and fiber to stay within your target.',
                       style: const TextStyle(height: 1.5),
                     ),
                   ],
@@ -371,9 +412,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         const SizedBox(width: 8),
                         Text(
                           'Why Live Tracking Matters',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -384,22 +424,20 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         color: Colors.red.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.2)),
+                          color: Colors.red.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.close,
-                              color: Colors.red, size: 20),
+                          const Icon(Icons.close, color: Colors.red, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
                                   'Traditional (Fixed TDEE)',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 Text(
                                   '${EnergyService.calculateTdee(bmr, profile.activityLevel).toStringAsFixed(0)} kcal — same every day',
@@ -421,22 +459,24 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         color: Colors.green.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: Colors.green.withValues(alpha: 0.2)),
+                          color: Colors.green.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.check,
-                              color: Colors.green, size: 20),
+                          const Icon(
+                            Icons.check,
+                            color: Colors.green,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
                                   'Our App (BMR + Live Tracking)',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 Text(
                                   '${dailyTarget.toStringAsFixed(0)} kcal — based on today\'s actual activity',
@@ -463,7 +503,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
   }
 
   Widget _buildCircleStat(
-      BuildContext context, String value, String label, Color color) {
+    BuildContext context,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Column(
       children: [
         Container(
@@ -485,25 +529,31 @@ class _SummaryScreenState extends State<SummaryScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(label,
-            style: TextStyle(
-                fontSize: 12, color: Colors.grey.shade600)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
       ],
     );
   }
 
-  Widget _buildCalcRow(String label, double value, Color color,
-      {bool bold = false}) {
+  Widget _buildCalcRow(
+    String label,
+    double value,
+    Color color, {
+    bool bold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(
-                fontWeight:
-                    bold ? FontWeight.bold : FontWeight.normal,
-              )),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
           Text(
             '${value >= 0 ? "" : ""}${value.toStringAsFixed(0)} kcal',
             style: TextStyle(
